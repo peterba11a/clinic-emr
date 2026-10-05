@@ -71,16 +71,29 @@ either way.
 
 ## A note on the server device's local network name
 
-The app advertises itself as `clinicserver.local` on the clinic's WiFi/LAN
-so other devices (like a consultation-room laptop) can reach it at a name
-that doesn't change even if the router hands the server a new IP address
-after a reboot. This is standard mDNS/Bonjour and works out of the box on
-Windows 10/11, macOS, iOS, Android and modern Linux. If a particular older
-Windows machine or router doesn't resolve `.local` names, there are two
-fallbacks: set a DHCP reservation for the server's IP address in the
-router's admin page, or run `make_ip_static.ps1` (in this folder) once on
-the server computer — see the main `README.md`'s "Keeping the server's
-address from changing" section and that script's own comments for what it
-does. It's bundled into the built exe automatically (via `clinic_emr.spec`)
-and installed to the Start Menu by the Inno Setup script below, and is
-also downloadable from Admin → Connect a device inside the running app.
+The installer pins the server's network address automatically (a checkbox
+in the installer, ticked by default, runs `make_ip_static.ps1` once right
+after install) so every other device in the clinic can reach it forever at
+a plain numeric address like `http://192.168.1.50:8080`, with nothing to
+reconfigure later even after the server computer restarts.
+
+The app also advertises itself as `clinicserver.local` on the clinic's
+WiFi/LAN, which is a nicer name than a numeric address when it works — but
+it depends on mDNS/Bonjour support that Windows generally does **not**
+have out of the box (unlike macOS, iOS, Android, and modern Linux, which
+resolve `.local` names natively). A Windows machine only resolves it if
+Apple's Bonjour is also installed (bundled with iTunes, or installable on
+its own as "Bonjour Print Services"), which a typical clinic PC won't
+have. Treat `.local` as a bonus, not something to rely on — the pinned
+numeric address is the one guaranteed to work everywhere with nothing
+extra installed, which is exactly why the installer sets it up
+automatically rather than leaving it as a manual fallback.
+
+If the checkbox was unticked during install, or the server later moves to
+a different network, `make_ip_static.ps1` (in this folder) can be re-run
+any time — see the main `README.md`'s "Keeping the server's address from
+changing" section and that script's own comments for what it does. It's
+bundled into the built exe automatically (via `clinic_emr.spec`), installed
+to the Start Menu by the Inno Setup script below as "Make this computer's
+address permanent (redo)", and is also downloadable from Admin → Connect a
+device inside the running app.

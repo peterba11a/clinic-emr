@@ -371,7 +371,7 @@ r = check("no new printing charge once price is back to 0", s.get(f"{BASE}/billi
 assert r.text.count("Printing — Prescription") == 2, "no new printing charge should be added once price is back to 0"
 
 r = check("connect device page", s.get(f"{BASE}/admin/connect-device"))
-assert "clinicserver.local:8080" in r.text, "primary connection address missing"
+assert "clinicserver.local:8080" in r.text, ".local bonus address missing"
 assert "8080" in r.text
 assert "Download the script" in r.text, "static-IP fallback script not offered"
 r = check("download static-ip script", s.get(f"{BASE}/admin/connect-device/make-ip-static-script"))

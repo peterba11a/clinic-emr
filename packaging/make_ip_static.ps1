@@ -1,11 +1,24 @@
 # make_ip_static.ps1
 #
-# Alternative to clinicserver.local (mDNS) for keeping this computer's
-# network address from changing after a reboot. Some older Windows
-# machines, some routers, or networks that block multicast traffic don't
-# resolve .local names reliably — if that's happening at your clinic, run
-# this script ONCE instead and other devices can use the plain numeric
-# address shown on Admin -> Connect a device, permanently.
+# Keeps this computer's network address from changing after a reboot, so
+# every other device in the clinic can reach it reliably at the same plain
+# numeric address (e.g. http://192.168.1.50:8080) forever, with nothing to
+# reconfigure later. This runs AUTOMATICALLY once, right after install,
+# because the Windows installer ticks that option by default — most clinics
+# never need to think about this script at all. It's also installed to the
+# Start Menu as "Make this computer's address permanent (redo)", for the
+# rare case it needs to be run again by hand (the checkbox was unticked
+# during install, or the computer moved to a different network).
+#
+# This is deliberately the primary way Clinic EMR keeps its address
+# stable, not clinicserver.local (mDNS): that name is a bonus that happens
+# to work on macOS, iOS, Android and modern Linux out of the box, but
+# Windows generally does NOT resolve arbitrary .local names without Apple's
+# Bonjour also being installed (it's bundled with iTunes, or installable on
+# its own as "Bonjour Print Services") — something a clinic PC usually
+# doesn't have. Rather than depend on that, this script makes the plain
+# numeric address permanent instead, which needs nothing extra installed
+# anywhere.
 #
 # WHAT THIS DOES: it looks at the network connection this computer is
 # currently using, reads the IP address / subnet / gateway / DNS servers
@@ -18,9 +31,10 @@
 #
 # This must be run as Administrator (changing network settings requires
 # it), but Clinic EMR itself deliberately does NOT run as Administrator
-# day to day. So this is a separate, optional, one-time script — not a
-# button inside the app — and it re-launches itself with an administrator
-# prompt automatically, so you can just double-click it.
+# day to day. So this stays a separate script — not a button inside the
+# app — and it re-launches itself with an administrator prompt
+# automatically (whether it's launched by the installer or by hand), so
+# that one expected permission prompt is the only thing anyone ever sees.
 #
 # Safe to run more than once: if the connection is already static, it
 # says so and makes no changes.

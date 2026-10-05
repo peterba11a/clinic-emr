@@ -86,9 +86,9 @@ devices on the same WiFi/network just open it in a browser.
 - **Admin** — user accounts with one or more roles each (Reception,
   Clinician, Nurse, Pharmacy, Lab, Admin), the billables price list, wards
   and beds with nightly rates, the presenting-complaints and custom-diagnosis
-  lists, a "Connect a device" page with step-by-step instructions (and the
-  right address to use, plus an alternative one-time script for networks
-  where that address doesn't resolve — see "Keeping the server's address
+  lists, a "Connect a device" page with step-by-step instructions (the
+  address to use is pinned permanently at install time automatically — see
+  "Keeping the server's address
   from changing" below) for adding another computer/laptop to the clinic's
   system, clinic branding (logo, name, address, contacts, motto, currency —
   appears automatically on every prescription, referral, visit summary,
@@ -148,29 +148,44 @@ cannot be produced from this Linux environment.
 
 ## Keeping the server's address from changing
 
-The app advertises itself as `clinicserver.local` so other devices keep
-working even if the router hands the server computer a new numeric IP
-address after a reboot (standard mDNS — the same trick a network printer
-uses). This works out of the box on Windows 10/11, macOS, iOS, Android,
-and modern Linux, but a few older Windows machines or routers that block
-multicast traffic won't resolve `.local` names.
+This is handled automatically, during installation, so most clinics never
+need to think about it. The installer has a checkbox — **"Make this
+computer's network address permanent," ticked by default** — that pins
+whatever IP address the server computer currently has (e.g.
+`192.168.1.50`) so it can never change after a reboot. Every other device
+in the clinic then reaches it forever at `http://<that address>:8080`,
+with nothing to reconfigure later.
 
-If that happens at your clinic, Admin → Connect a device offers two
-fixes, without needing to touch the app's code or reinstall anything:
+The app also advertises itself as `clinicserver.local`, which is a nicer
+name to type than a numeric address when it happens to work. Treat it as
+a bonus, not something to rely on: it depends on mDNS/Bonjour support
+that macOS, iOS, Android, and modern Linux all have built in, but
+**Windows generally does not** — a Windows machine only resolves `.local`
+names if Apple's Bonjour is also installed (it's bundled with iTunes, or
+installable on its own as "Bonjour Print Services"), which a typical
+clinic PC won't have. That's exactly why this project pins the numeric
+address automatically instead of relying on `.local` by default — it
+needs nothing extra installed anywhere, on any device.
 
-1. Ask whoever manages the clinic's router to set a fixed ("static" or
-   "reserved") address for the server computer, or
-2. Run `packaging\make_ip_static.ps1` once, directly on the server
-   computer (also installed to its Start Menu as "Make this computer's
-   address permanent"). It takes whatever IP address the computer
-   currently has and makes it permanent — no router access needed, and it
-   doesn't change how the computer connects to anything. It needs an
-   administrator prompt to run (changing network settings requires that),
-   which is why it's a separate script rather than a button inside the
-   app itself — Clinic EMR deliberately runs without admin rights day to
-   day.
+If the checkbox was unticked during install, or the server computer later
+moves to a different network (new router, new WiFi), redo it any time
+without reinstalling anything:
 
-Either fix is a one-time thing; you don't need both.
+1. Run `packaging\make_ip_static.ps1` once, directly on the server
+   computer (also on its Start Menu as "Make this computer's address
+   permanent (redo)," and downloadable from Admin → Connect a device).
+   It takes whatever IP address the computer currently has right now and
+   makes it permanent — no router access needed, and it doesn't change
+   how the computer connects to anything. It needs an administrator
+   prompt to run (changing network settings requires that), which is why
+   it's a separate script rather than a button inside the app itself —
+   Clinic EMR deliberately runs without admin rights day to day; or
+2. Ask whoever manages the clinic's router to set a fixed ("static" or
+   "reserved") address for the server computer instead, if you'd rather
+   not touch the server computer itself.
+
+Only one of these is ever needed, and running the script again later is
+always safe — it does nothing if the address is already permanent.
 
 ## Backups
 

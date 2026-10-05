@@ -39,10 +39,18 @@
     <p>
       Once installed, the app starts automatically every time the computer
       boots, and restarts itself if it ever crashes — nobody at the clinic
-      needs to open anything by hand day to day. It opens
-      <code>http://clinicserver.local:8080</code> in a browser
-      automatically.
+      needs to open anything by hand day to day. It opens a browser to
+      itself automatically on this computer.
     </p>
+
+    <div class="callout">
+      <p>
+        <strong>Leave "Make this computer's network address permanent"
+        ticked</strong> during installation (it's on by default). This is
+        what lets every other device in the clinic reach this computer at
+        the same address forever, even after it restarts — see step 2.
+      </p>
+    </div>
 
     <div class="callout warn">
       <p>
@@ -59,17 +67,26 @@
     <p>
       A consultation-room laptop, a reception desktop, a nurse's tablet —
       none of them need anything installed. They just open a browser and
-      go to:
+      go to the server computer's address, shown on Admin &rarr; Connect a
+      device — something like:
     </p>
-    <pre><code>http://clinicserver.local:8080</code></pre>
+    <pre><code>http://192.168.1.50:8080</code></pre>
     <p>
-      This works out of the box on Windows 10/11, macOS, iOS, Android, and
-      modern Linux. If a particular device or router doesn't resolve
-      <code>.local</code> addresses, Admin &rarr; Connect a device offers
-      two one-time fixes (no reinstalling, no code changes): ask whoever
-      manages the clinic's router to reserve a fixed address for the server
-      computer, or run the included script that makes the server's current
-      address permanent.
+      That's a fixed, numeric address — pinned permanently during
+      installation (step 1) — so it works on every device with nothing
+      extra to install, and it's what to hand out to staff by default. The
+      same page also shows a friendlier name,
+      <code>http://clinicserver.local:8080</code>, which works out of the
+      box on macOS, iOS, Android, and modern Linux, but generally
+      <strong>not</strong> on Windows unless Apple's Bonjour is separately
+      installed there — so treat that name as a bonus, not something to
+      rely on for a Windows device.
+    </p>
+    <p>
+      If the numeric address was ever left unpinned, or the server computer
+      moves to a different network later, Admin &rarr; Connect a device has
+      a one-click way to redo it — no reinstalling, no router access
+      needed.
     </p>
 
     <h2>3. Set up backups</h2>
