@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Diagnoses list{% endblock %}
+{% block content %}
+<h1>Diagnoses list</h1>
+<p class="muted">
+  Clinicians search {{ "{:,}".format(icd10_count) }} bundled ICD-10 codes directly from a visit's
+  Diagnoses tab — those aren't listed here since there are thousands of them. Use this page to add
+  clinic-specific diagnosis terms on top of ICD-10, or to check whether a term already exists before
+  adding a duplicate.
+</p>
+
+<div class="panel">
+  <h2>Search the full list (ICD-10 + custom)</h2>
+  <form method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by code or text">
+    <button type="submit">Search</button>
+  </form>
+  {% if q %}
+  <table>
+    <tr><th>Code</th><th>Description</th><th>Source</th></tr>
+    {% for r in search_results %}
+    <tr><td>{{ r.code or '—' }}</td><td>{{ r.text }}</td><td>{{ r.source }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">No matches.</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Custom diagnoses</h2>
+  <table>
+    <tr><th>Code (optional)</th><th>Text</th><th>Active</th><th></th></tr>
+    {% for d in custom %}
+    <tr>
+      <form method="post" action="{{ url_for('admin.edit_diagnosis_master', diagnosis_id=d.id) }}">
+      <td><input type="text" name="code" value="{{ d.code or '' }}" style="width:100px;"></td>
+      <td><input type="text" name="text" value="{{ d.text }}"></td>
+      <td><input type="checkbox" name="active" value="1" {{ 'checked' if d.active }}></td>
+      <td><button type="submit" class="btn-small">Save</button></td>
+      </form>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="muted">No custom diagnoses added yet.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h2>Add a custom diagnosis</h2>
+<div class="panel">
+  <form method="post">
+    <div class="row">
+      <div><label>Code (optional)</label><input type="text" name="code"></div>
+      <div style="flex:2;"><label>Text</label><input type="text" name="text" required></div>
+    </div>
+    <button type="submit">Add</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h1>Reports</h1>
+
+<div class="stat-row">
+  <div class="stat"><div class="n">{{ patients_today }}</div><div class="label">Visits today</div></div>
+  <div class="stat"><div class="n">{{ patients_month }}</div><div class="label">Visits this month</div></div>
+  <div class="stat"><div class="n">{{ revenue_today|money }}</div><div class="label">Revenue today</div></div>
+  <div class="stat"><div class="n">{{ revenue_month|money }}</div><div class="label">Revenue this month</div></div>
+</div>
+
+<h2>Revenue by category (this month)</h2>
+<div class="panel">
+  <table>
+    <tr><th>Category</th><th class="right">Total</th></tr>
+    {% for r in revenue_by_category %}
+    <tr><td>{{ r.category }}</td><td class="right">{{ r.t|money }}</td></tr>
+    {% else %}
+    <tr><td colspan="2" class="muted">No billing activity yet this month.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h2>Most common diagnoses (this month)</h2>
+<div class="panel">
+  <table>
+    <tr><th>Diagnosis</th><th class="right">Count</th></tr>
+    {% for d in common_diagnoses %}
+    <tr><td>{{ d.diagnosis }}</td><td class="right">{{ d.c }}</td></tr>
+    {% else %}
+    <tr><td colspan="2" class="muted">No diagnoses recorded yet this month.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h2>Pharmacy alerts</h2>
+<div class="panel">
+  <h3>Low stock</h3>
+  <table>
+    <tr><th>Item</th><th>Stock</th><th>Threshold</th></tr>
+    {% for i in low_stock %}
+    <tr><td>{{ i.name }}</td><td>{{ i.stock_qty }} {{ i.unit }}</td><td>{{ i.reorder_threshold }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">Nothing low on stock.</td></tr>
+    {% endfor %}
+  </table>
+  <h3>Expiring within 60 days</h3>
+  <table>
+    <tr><th>Item</th><th>Expiry</th><th>Stock</th></tr>
+    {% for i in expiring_soon %}
+    <tr><td>{{ i.name }}</td><td>{{ i.expiry_date }}</td><td>{{ i.stock_qty }} {{ i.unit }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">Nothing expiring soon.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

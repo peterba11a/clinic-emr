@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Clinic profile{% endblock %}
+{% block content %}
+<h1>Clinic profile &amp; letterhead</h1>
+<p class="muted">These details appear on every printed prescription, referral, visit summary, complete record, and receipt. Only the clinic name is required.</p>
+<div class="panel">
+  <form method="post" enctype="multipart/form-data">
+    <label>Clinic name *</label>
+    <input type="text" name="name" value="{{ profile.name or '' }}" required>
+
+    <label>Logo</label>
+    {% if profile.logo_path %}<div><img src="{{ url_for('static', filename=profile.logo_path) }}" style="height:50px;margin-bottom:8px;"></div>{% endif %}
+    <input type="file" name="logo" accept=".png,.jpg,.jpeg">
+
+    <label>Address</label>
+    <input type="text" name="address" value="{{ profile.address or '' }}">
+    <div class="row">
+      <div><label>Phone</label><input type="tel" name="phone" value="{{ profile.phone or '' }}"></div>
+      <div><label>Phone (alt)</label><input type="tel" name="phone2" value="{{ profile.phone2 or '' }}"></div>
+    </div>
+    <label>Website</label>
+    <input type="text" name="website" value="{{ profile.website or '' }}">
+    <label>Motto / tagline</label>
+    <input type="text" name="motto" value="{{ profile.motto or '' }}">
+
+    <label>Currency</label>
+    {% set common_currencies = ['UGX', 'KES', 'TZS', 'RWF', 'USD', 'GBP', 'EUR'] %}
+    <select name="currency" id="currency-select" onchange="document.getElementById('currency-other-row').style.display = (this.value === '__other__') ? 'block' : 'none';">
+      {% for c in common_currencies %}
+      <option value="{{ c }}" {{ 'selected' if profile.currency == c }}>{{ c }}</option>
+      {% endfor %}
+      <option value="__other__" {{ 'selected' if profile.currency and profile.currency not in common_currencies }}>Other (type below)</option>
+    </select>
+    <div id="currency-other-row" style="display: {{ 'block' if profile.currency and profile.currency not in common_currencies else 'none' }};">
+      <label>Currency code / symbol</label>
+      <input type="text" name="currency_other" maxlength="10" placeholder="e.g. BIF, SSP, $"
+             value="{{ profile.currency if profile.currency and profile.currency not in common_currencies else '' }}">
+    </div>
+    <p class="muted">Shown on every bill, invoice, and receipt — e.g. "{{ profile.currency or 'UGX' }} 15,000".</p>
+
+    <h3>Social media (optional)</h3>
+    <div class="row">
+      <div><label>Facebook</label><input type="text" name="social_facebook" value="{{ profile.social_facebook or '' }}"></div>
+      <div><label>Instagram</label><input type="text" name="social_instagram" value="{{ profile.social_instagram or '' }}"></div>
+    </div>
+    <div class="row">
+      <div><label>WhatsApp</label><input type="text" name="social_whatsapp" value="{{ profile.social_whatsapp or '' }}"></div>
+      <div><label>X / Twitter</label><input type="text" name="social_twitter" value="{{ profile.social_twitter or '' }}"></div>
+    </div>
+    <label>Other</label>
+    <input type="text" name="social_other" value="{{ profile.social_other or '' }}">
+
+    <button type="submit">Save clinic profile</button>
+  </form>
+</div>
+{% endblock %}

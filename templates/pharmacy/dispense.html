@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Dispense — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>Dispense to {{ patient.full_name }} <span class="muted">({{ patient.patient_code }})</span></h1>
+<div class="panel">
+  <form method="post" class="row" style="align-items:flex-end;">
+    <div>
+      <label>Drug</label>
+      <select name="item_id" required>
+        {% for i in items %}
+        <option value="{{ i.id }}">{{ i.name }} — {{ i.stock_qty }} {{ i.unit }} in stock — {{ i.unit_price|money }} each</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="max-width:140px;">
+      <label>Quantity</label>
+      <input type="number" step="0.01" name="quantity" required>
+    </div>
+    <div style="flex:0;"><button type="submit">Dispense</button></div>
+  </form>
+</div>
+
+<h2>Dispensed this visit</h2>
+<div class="panel">
+  <table>
+    <tr><th>Drug</th><th>Quantity</th><th>Time</th></tr>
+    {% for h in history %}
+    <tr><td>{{ h.name }}</td><td>{{ h.quantity }} {{ h.unit }}</td><td>{{ h.dispensed_at[11:16] }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">Nothing dispensed yet.</td></tr>
+    {% endfor %}
+  </table>
+  <a class="btn btn-secondary" href="{{ url_for('visits.detail', visit_id=visit.id) }}">Back to visit</a>
+</div>
+{% endblock %}

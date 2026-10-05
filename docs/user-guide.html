@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User guide — Clinic EMR</title>
+<meta name="description" content="How each role at the clinic — Reception, Clinician, Nurse, Pharmacy, and Admin — uses Clinic EMR day to day.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="brand-mark">+</span> Clinic EMR</a>
+    <nav class="site-nav">
+      <a href="index.html">Home</a>
+      <a href="install.html">Install</a>
+      <a href="user-guide.html" class="current">User guide</a>
+      <a href="https://github.com/">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="eyebrow">User guide</div>
+    <h1>How each role uses Clinic EMR</h1>
+    <p class="lede">
+      A staff member can hold more than one role (e.g. Nurse and Pharmacy),
+      and Admin can see and do everything every other role can. This walks
+      through the day-to-day flow for each one.
+    </p>
+
+    <div class="role-section">
+      <span class="role-tag">Reception</span>
+      <h2>Registering, triaging, and billing patients</h2>
+      <ol>
+        <li>Register a new patient, or search for a returning one by name or their patient code.</li>
+        <li>Record the chief complaint, core vitals, and a triage priority (Emergency / Urgent / Routine) — this is what sorts the waiting queue, so the clinician sees it without re-asking.</li>
+        <li>After the clinician has seen the patient, open their invoice to record a payment (partial payments are supported) and print a receipt.</li>
+        <li>Print a copy of the prescription, referral letter, or visit summary for the patient to take with them, whenever it's needed.</li>
+      </ol>
+    </div>
+
+    <div class="role-section">
+      <span class="role-tag">Clinician</span>
+      <h2>The encounter, diagnosis, and treatment</h2>
+      <ol>
+        <li>Open the patient's visit from the queue — it's a tabbed record: Vitals, Complaints, History, Examination, Investigation, Diagnoses, Treatments, and Notes.</li>
+        <li>Add diagnoses from the full ICD-10 list (or a clinic-specific term Admin has added), marked Confirmed or Preliminary.</li>
+        <li>Order drugs or procedures in the Treatments tab — a drug searches live pharmacy stock as you type; a procedure is picked from the admin's price list so it bills correctly every time.</li>
+        <li>Order lab or radiology investigations and record results when they're back — they show up directly in the Investigation tab.</li>
+        <li>Admit a patient to a ward/bed when needed, and discharge them later with a discharge summary, a follow-up date, and any take-home medications (billed automatically).</li>
+        <li>Write a referral letter, or print the visit summary / complete patient record — both pull together everything recorded for the visit (or every visit), not just a one-line summary.</li>
+      </ol>
+    </div>
+
+    <div class="role-section">
+      <span class="role-tag">Nurse</span>
+      <h2>Vitals, dosing, and the inpatient stay</h2>
+      <ol>
+        <li>Record vitals and add nursing notes during a visit or an admission.</li>
+        <li>Log each dose given against a treatment order — every dose deducts stock and bills automatically, which matters most for a multi-day admission.</li>
+        <li>When logging a dose, record any consumables used alongside it (syringe, gloves, cotton swabs...) — each is billed and deducted from stock on its own.</li>
+        <li>Admit and discharge patients the same way a Clinician does, if that's part of the clinic's workflow.</li>
+      </ol>
+    </div>
+
+    <div class="role-section">
+      <span class="role-tag">Pharmacy</span>
+      <h2>Stock and dispensing</h2>
+      <ol>
+        <li>Keep the stock list up to date — drugs and consumable materials, with expiry dates.</li>
+        <li>Dispense a drug against a visit; stock and that visit's bill update automatically.</li>
+        <li>Watch for items running low — the stock list shows quantity on hand for everything.</li>
+      </ol>
+    </div>
+
+    <div class="role-section">
+      <span class="role-tag">Admin</span>
+      <h2>Setting the clinic up and keeping it running</h2>
+      <ol>
+        <li>Create a user account for each staff member and assign their role(s) — Admin &rarr; Users.</li>
+        <li>Set up the billables price list (consultations, procedures, lab, radiology) and, if the clinic wants to charge for printing, a price per page — Admin &rarr; Billables.</li>
+        <li>Add wards and beds with their nightly rates — Admin &rarr; Wards.</li>
+        <li>Set the clinic's branding (name, logo, address, contacts, currency) — it then appears automatically on every printed document.</li>
+        <li>Use Admin &rarr; Connect a device whenever a new computer or laptop needs to join the clinic's system.</li>
+        <li>Set up and check on nightly backups — Admin &rarr; Backup status.</li>
+        <li>Maintain the presenting-complaints list and any clinic-specific diagnosis terms used alongside the bundled ICD-10 list.</li>
+      </ol>
+    </div>
+
+    <div class="callout">
+      <p>
+        Every user, in every role, can change their own password at any
+        time from the link next to their name — separate from Admin
+        resetting someone else's password without knowing it.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    Clinic EMR is free, open-source software provided as-is. &middot;
+    <a href="https://github.com/">Source &amp; downloads on GitHub</a>
+  </div>
+</footer>
+</body>
+</html>

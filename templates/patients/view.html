@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>{{ patient.full_name }} <span class="muted">({{ patient.patient_code }})</span></h1>
+<div class="panel">
+  <div class="row">
+    <div><strong>Sex:</strong> {{ patient.sex or '—' }}</div>
+    <div><strong>DOB:</strong> {{ patient.dob or '—' }}</div>
+    <div><strong>Age:</strong> {{ patient.age_years or '—' }}</div>
+    <div><strong>Phone:</strong> {{ patient.phone or '—' }}</div>
+    <div><strong>Village:</strong> {{ patient.village or '—' }}</div>
+  </div>
+  {% if has_role('Reception') %}
+  <a class="btn" href="{{ url_for('visits.checkin', patient_id=patient.id) }}">Check in for a visit</a>
+  {% endif %}
+  <a class="btn btn-secondary" href="{{ url_for('printing.complete_record', patient_id=patient.id) }}" target="_blank">Print complete record</a>
+</div>
+
+<h2>Visit history</h2>
+<div class="panel">
+  <table>
+    <tr><th>Date</th><th>Status</th><th>Complaint</th><th>Diagnosis</th><th>Seen by</th><th></th></tr>
+    {% for v in visits %}
+    <tr>
+      <td>{{ v.visit_date[:16] }}</td>
+      <td><span class="badge badge-{{ v.status }}">{{ v.status.replace('_',' ') }}</span></td>
+      <td>{{ v.latest_complaint or v.complaint or '—' }}</td>
+      <td>{{ v.latest_diagnosis or v.diagnosis or '—' }}</td>
+      <td>{{ v.seen_by_name or '—' }}</td>
+      <td>
+        {% if has_role('Reception','Nurse','Clinician') %}<a href="{{ url_for('visits.detail', visit_id=v.id) }}">Open</a>{% endif %}
+        {% if v.status == 'completed' %} · <a href="{{ url_for('printing.visit_summary', visit_id=v.id) }}" target="_blank">Print</a>{% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="muted">No visits recorded yet.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

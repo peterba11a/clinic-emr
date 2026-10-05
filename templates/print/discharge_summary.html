@@ -1,0 +1,23 @@
+{% extends "print/_base_print.html" %}
+{% block title %}Discharge summary{% endblock %}
+{% block doc_title %}Discharge summary{% endblock %}
+{% block body %}
+<p><strong>Patient:</strong> {{ patient.full_name }} ({{ patient.patient_code }})</p>
+<p><strong>Age/Sex:</strong> {{ patient.age_years or patient.dob or '—' }} / {{ patient.sex or '—' }}</p>
+
+<p>
+  <strong>Ward / Bed:</strong> {{ admission.ward_name }} / {{ admission.bed_name }}<br>
+  <strong>Admitted:</strong> {{ admission.admitted_at[:16] }}{% if admission.admitted_by_name %} (by {{ admission.admitted_by_name }}){% endif %}<br>
+  <strong>Discharged:</strong> {{ admission.discharged_at[:16] }}{% if admission.discharged_by_name %} (by {{ admission.discharged_by_name }}){% endif %}
+</p>
+
+<p><strong>Diagnos{{ 'is' if diagnoses|length <= 1 else 'es' }}:</strong> {{ diagnoses|join('; ') or '—' }}</p>
+
+<p><strong>Discharge notes / summary:</strong><br>{{ admission.discharge_summary }}</p>
+
+{% if admission.discharge_medications %}
+<p><strong>Discharge medications (take home):</strong><br>{{ admission.discharge_medications }}</p>
+{% endif %}
+
+<p><strong>Follow-up date:</strong> {{ admission.follow_up_date or 'Not advised' }}</p>
+{% endblock %}

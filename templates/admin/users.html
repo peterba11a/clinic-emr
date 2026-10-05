@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>Staff accounts</h1>
+<div class="panel">
+  <table>
+    <tr><th>Name</th><th>Username</th><th>Roles</th><th>Active</th><th></th></tr>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.full_name }}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ user_roles[u.id]|join(', ') }}</td>
+      <td>{{ 'Yes' if u.active else 'No' }}</td>
+      <td><a href="{{ url_for('admin.edit_user', user_id=u.id) }}">Edit</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <a class="btn" href="{{ url_for('admin.new_user') }}">Add staff account</a>
+</div>
+<div class="panel">
+  <h2>Other admin settings</h2>
+  <a href="{{ url_for('admin.connect_device') }}">Connect a device</a><br>
+  <a href="{{ url_for('admin.billables') }}">Billables / price list</a><br>
+  <a href="{{ url_for('admin.wards') }}">Wards &amp; beds</a><br>
+  <a href="{{ url_for('admin.complaints_master') }}">Presenting complaints list</a><br>
+  <a href="{{ url_for('admin.diagnoses_master') }}">Diagnoses list (ICD-10 + custom)</a><br>
+  <a href="{{ url_for('admin.clinic_profile') }}">Clinic profile &amp; letterhead</a><br>
+  <a href="{{ url_for('admin.backup_status') }}">Backup status</a>
+</div>
+{% endblock %}

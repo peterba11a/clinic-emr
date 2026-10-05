@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Welcome, {{ current_user.full_name }}</h1>
+<div class="stat-row">
+  <a class="stat" href="{{ url_for('visits.queue') }}"><div class="label">Waiting list</div><div class="n">→</div></a>
+  <a class="stat" href="{{ url_for('patients.index') }}"><div class="label">Patients</div><div class="n">→</div></a>
+  {% if has_role('Reception','Nurse','Clinician') %}
+  <a class="stat" href="{{ url_for('admissions.inpatients') }}"><div class="label">Inpatients</div><div class="n">→</div></a>
+  {% endif %}
+  {% if has_role('Pharmacy') %}
+  <a class="stat" href="{{ url_for('pharmacy.index') }}"><div class="label">Pharmacy</div><div class="n">→</div></a>
+  {% endif %}
+  <a class="stat" href="{{ url_for('reports.index') }}"><div class="label">Reports</div><div class="n">→</div></a>
+  {% if has_role('Admin') %}
+  <a class="stat" href="{{ url_for('admin.users') }}"><div class="label">Admin</div><div class="n">→</div></a>
+  {% endif %}
+</div>
+{% if has_role('Reception') %}
+<div class="panel">
+  <h2>Reception</h2>
+  <p><a href="{{ url_for('patients.new') }}">Register a new patient</a> or search existing patients above.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Clinic{% endblock %} — {{ clinic.name or 'Clinic EMR' }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if current_user %}
+<header class="topbar">
+  <div class="brand">
+    {% if clinic.logo_path %}<img src="{{ url_for('static', filename=clinic.logo_path) }}" class="brand-logo" alt="">{% endif %}
+    <span>{{ clinic.name or 'Clinic EMR' }}</span>
+  </div>
+  <nav>
+    <a href="{{ url_for('visits.queue') }}">Queue</a>
+    <a href="{{ url_for('patients.index') }}">Patients</a>
+    {% if has_role('Reception','Nurse','Clinician') %}<a href="{{ url_for('admissions.inpatients') }}">Inpatients</a>{% endif %}
+    {% if has_role('Pharmacy') %}<a href="{{ url_for('pharmacy.index') }}">Pharmacy</a>{% endif %}
+    {% if has_role('Reception','Clinician') %}<a href="{{ url_for('reports.index') }}">Reports</a>{% endif %}
+    {% if has_role('Admin') %}<a href="{{ url_for('admin.users') }}">Admin</a>{% endif %}
+  </nav>
+  <div class="whoami">
+    {{ current_user.full_name }} <span class="roles">({{ current_roles|join(', ') }})</span>
+    · <a href="{{ url_for('auth.change_password') }}">Change password</a>
+    · <a href="{{ url_for('auth.logout') }}">Log out</a>
+  </div>
+</header>
+{% if show_profile_reminder %}
+<div class="banner banner-notice">
+  <span>Your clinic's letterhead isn't set up yet — the name, logo, and contact details you add appear on every printed document. <a href="{{ url_for('admin.clinic_profile') }}">Set it up now</a>.</span>
+  <form method="post" action="{{ url_for('admin.dismiss_reminder', key='profile') }}"><button type="submit" class="link-button">Don't show this again</button></form>
+</div>
+{% endif %}
+{% if show_backup_reminder %}
+<div class="banner banner-notice">
+  <span>Nightly backups aren't pointed anywhere yet — without a backup folder set, patient data only lives on this one computer. <a href="{{ url_for('admin.backup_status') }}">Set it up now</a>.</span>
+  <form method="post" action="{{ url_for('admin.dismiss_reminder', key='backup') }}"><button type="submit" class="link-button">Don't show this again</button></form>
+</div>
+{% endif %}
+{% endif %}
+<main class="content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

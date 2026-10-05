@@ -1,0 +1,10 @@
+{% extends "print/_base_print.html" %}
+{% block title %}Visit summary{% endblock %}
+{% block doc_title %}Visit summary{% endblock %}
+{% block body %}
+<p><strong>Patient:</strong> {{ patient.full_name }} ({{ patient.patient_code }})</p>
+<p><strong>Age/Sex:</strong> {{ patient.age_years or patient.dob or '—' }} / {{ patient.sex or '—' }} ·
+   <strong>Phone:</strong> {{ patient.phone or '—' }} · <strong>Village:</strong> {{ patient.village or '—' }}</p>
+
+{% include "print/_encounter_detail.html" %}
+{% endblock %}

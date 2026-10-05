@@ -1,0 +1,657 @@
+{% extends "base.html" %}
+{% block title %}Encounter — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>{{ patient.full_name }} <span class="muted">({{ patient.patient_code }})</span></h1>
+<p class="muted">
+  Started {{ visit.visit_date[:16] }} ·
+  <span class="badge badge-{{ visit.status }}">{{ visit.status.replace('_',' ') }}</span>
+  <span class="badge badge-priority-{{ visit.priority }}">{{ visit.priority }}</span>
+  {% if admission %} · {{ admission.ward_name }} / {{ admission.bed_name }}{% endif %}
+</p>
+
+<div class="tab-nav" id="tab-nav">
+  <button type="button" data-tab="overview" class="active">Overview</button>
+  <button type="button" data-tab="vitals">Vitals</button>
+  <button type="button" data-tab="complaints">Complaints</button>
+  <button type="button" data-tab="history">History</button>
+  <button type="button" data-tab="examination">Examination</button>
+  <button type="button" data-tab="investigation">Investigation</button>
+  <button type="button" data-tab="diagnoses">Diagnoses</button>
+  <button type="button" data-tab="treatments">Treatments</button>
+  <button type="button" data-tab="notes">Notes</button>
+</div>
+
+<!-- ===== Overview ===== -->
+<div class="tab-panel active" id="tab-overview">
+  <div class="panel">
+    <div class="row">
+      <a class="btn btn-secondary btn-small" href="{{ url_for('pharmacy.dispense', visit_id=visit.id) }}">Dispense drugs</a>
+      <a class="btn btn-secondary btn-small" href="{{ url_for('procedures.record', visit_id=visit.id) }}">Record procedure</a>
+      <a class="btn btn-secondary btn-small" href="{{ url_for('lab.order', visit_id=visit.id) }}">Lab</a>
+      <a class="btn btn-secondary btn-small" href="{{ url_for('radiology.request_imaging', visit_id=visit.id) }}">Radiology</a>
+      <a class="btn btn-secondary btn-small" href="{{ url_for('referrals.new', visit_id=visit.id) }}">Referral</a>
+      <a class="btn btn-secondary btn-small" href="{{ url_for('billing.invoice', visit_id=visit.id) }}">Bill</a>
+    </div>
+  </div>
+
+  {% if admission and admission.status == 'admitted' %}
+  <div class="panel">
+    <h2>Admitted</h2>
+    <p>{{ admission.ward_name }} — {{ admission.bed_name }}, since {{ admission.admitted_at[:16] }}.</p>
+    {% if has_role('Nurse','Clinician') %}
+    <button type="button" class="btn-small" onclick="document.getElementById('discharge-dialog').showModal()">Discharge patient</button>
+
+    <dialog id="discharge-dialog">
+      <form method="post" action="{{ url_for('admissions.discharge', admission_id=admission.id) }}">
+        <h3>Discharge patient</h3>
+        <label>Discharge notes / summary (condition, treatment given) *</label>
+        <textarea name="discharge_summary" required></textarea>
+
+        <label>Follow-up date</label>
+        <input type="date" name="follow_up_date">
+
+        <h4>Discharge medications (take-home prescription)</h4>
+        <p class="muted">Picked from pharmacy stock, the same way a drug is ordered in Treatments — each one is billed and deducted from stock the moment you discharge.</p>
+        <div id="discharge-med-rows"></div>
+        <button type="button" class="btn-secondary btn-small" onclick="addDischargeMedRow()">+ Add medication</button>
+
+        <div class="row" style="margin-top:16px;">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('discharge-dialog').close()">Cancel</button>
+          <button type="submit">Discharge patient</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="discharge-med-row-template">
+      <div class="row discharge-med-row" style="align-items:flex-start; flex-wrap:wrap;">
+        <div style="flex:2; min-width:160px;">
+          <input type="text" name="med_drug_name" class="discharge-med-drug-input" list="drug-options" autocomplete="off" placeholder="Drug name">
+          <p class="muted discharge-med-stock-hint" style="margin:2px 0 0; font-size:12px;">&nbsp;</p>
+        </div>
+        <input type="hidden" name="med_inventory_item_id">
+        <div style="max-width:100px;"><input type="text" name="med_route" placeholder="Route"></div>
+        <div style="max-width:100px;"><input type="text" name="med_dose" placeholder="Dose"></div>
+        <div style="max-width:100px;"><input type="text" name="med_frequency" placeholder="Frequency"></div>
+        <div style="max-width:90px;"><input type="text" name="med_duration" placeholder="Duration"></div>
+        <div style="max-width:90px;"><input type="number" step="0.01" name="med_quantity" placeholder="Qty to dispense"></div>
+        <div style="flex:2; min-width:140px;"><input type="text" name="med_instructions" placeholder="Instructions"></div>
+        <div style="flex:0;"><button type="button" class="btn-secondary btn-small" onclick="this.closest('.discharge-med-row').remove()">Remove</button></div>
+      </div>
+    </template>
+    <script>
+    (function() {
+      var dischargeDrugsData = {{ drugs_json|safe }};
+      window.addDischargeMedRow = function() {
+        var tpl = document.getElementById('discharge-med-row-template');
+        var clone = tpl.content.cloneNode(true);
+        document.getElementById('discharge-med-rows').appendChild(clone);
+      };
+      document.getElementById('discharge-med-rows').addEventListener('input', function(e) {
+        if (!e.target.classList.contains('discharge-med-drug-input')) { return; }
+        var row = e.target.closest('.discharge-med-row');
+        var hiddenId = row.querySelector('input[name="med_inventory_item_id"]');
+        var hint = row.querySelector('.discharge-med-stock-hint');
+        var typed = e.target.value.trim().toLowerCase();
+        var match = dischargeDrugsData.find(function(d) { return d.name.toLowerCase() === typed; });
+        if (match) {
+          hiddenId.value = match.id;
+          var lowStock = match.stock_qty <= 0;
+          hint.textContent = lowStock ? ('OUT OF STOCK — ' + match.name) : ('In stock: ' + match.stock_qty + ' ' + match.unit);
+          hint.style.color = lowStock ? 'var(--danger)' : '';
+        } else {
+          hiddenId.value = '';
+          hint.textContent = typed ? 'Not in pharmacy stock — will be recorded without billing/dispensing.' : ' ';
+          hint.style.color = '';
+        }
+      });
+    })();
+    </script>
+    {% else %}
+    <p class="muted">A Nurse or Clinician can discharge this patient.</p>
+    {% endif %}
+  </div>
+  {% elif admission and admission.status == 'discharged' %}
+  <div class="panel">
+    <h2>Discharged</h2>
+    <p>{{ admission.ward_name }} — {{ admission.bed_name }}, {{ admission.admitted_at[:16] }} to {{ admission.discharged_at[:16] }}.</p>
+    <a class="btn btn-secondary" target="_blank" href="{{ url_for('printing.discharge_summary', admission_id=admission.id) }}">Print discharge summary</a>
+  </div>
+  {% elif has_role('Reception','Nurse','Clinician') %}
+  <div class="panel">
+    <h2>Admit patient</h2>
+    {% if available_beds %}
+    <form method="post" action="{{ url_for('admissions.admit', visit_id=visit.id) }}">
+      <label>Bed</label>
+      <select name="bed_id" required>
+        {% for bed in available_beds %}
+        <option value="{{ bed.id }}">{{ bed.ward_name }} — {{ bed.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Admit</button>
+    </form>
+    {% else %}
+    <p class="muted">No beds are currently available. An Admin can add wards/beds under Admin → Wards &amp; beds.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if visit.status not in ('completed',) and has_role('Clinician') %}
+  <div class="panel">
+    <form method="post" action="{{ url_for('visits.finalize', visit_id=visit.id) }}">
+      <button type="submit">Complete encounter</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="panel">
+    <h2>Print</h2>
+    <p class="muted">Available at any point in the visit, including while admitted — not just once the encounter is marked complete.</p>
+    <a class="btn btn-secondary" target="_blank" href="{{ url_for('printing.prescription', visit_id=visit.id) }}">Print prescription / medication</a>
+    <a class="btn btn-secondary" target="_blank" href="{{ url_for('printing.visit_summary', visit_id=visit.id) }}">Print visit summary</a>
+    <a class="btn btn-secondary" target="_blank" href="{{ url_for('printing.complete_record', patient_id=patient.id) }}">Print complete patient record</a>
+  </div>
+</div>
+
+<!-- ===== Vitals ===== -->
+<div class="tab-panel" id="tab-vitals">
+  <div class="panel">
+    <ul class="entry-log">
+      {% for v in vitals %}
+      <li>
+        <div class="meta">{{ v.recorded_at[:16] }} · {{ v.recorded_by_name or '—' }}</div>
+        BP {{ v.bp or '—' }} · Pulse {{ v.pulse or '—' }} · Temp {{ v.temp_c or '—' }}°C ·
+        RR {{ v.resp_rate or '—' }} · SpO2 {{ v.spo2 or '—' }}% · Weight {{ v.weight_kg or '—' }}kg ·
+        Height {{ v.height_cm or '—' }}cm · RBS {{ v.rbs or '—' }}
+        {% if v.other %}· {{ v.other }}{% endif %}
+      </li>
+      {% else %}
+      <li class="muted">No vitals recorded yet.</li>
+      {% endfor %}
+    </ul>
+    {% if has_role('Nurse','Clinician') %}
+    <h3>Record vitals</h3>
+    <form method="post" action="{{ url_for('visits.add_vitals', visit_id=visit.id) }}">
+      <div class="row">
+        <div><label>Blood pressure</label><input type="text" name="bp" placeholder="120/80"></div>
+        <div><label>Pulse (bpm)</label><input type="number" name="pulse"></div>
+        <div><label>Temperature (°C)</label><input type="number" step="0.1" name="temp_c"></div>
+        <div><label>Respiratory rate</label><input type="number" name="resp_rate"></div>
+      </div>
+      <div class="row">
+        <div><label>SpO2 (%)</label><input type="number" name="spo2"></div>
+        <div><label>Weight (kg)</label><input type="number" step="0.1" name="weight_kg"></div>
+        <div><label>Height (cm)</label><input type="number" step="0.1" name="height_cm"></div>
+        <div><label>RBS</label><input type="number" step="0.1" name="rbs"></div>
+      </div>
+      <label>Other</label>
+      <input type="text" name="other">
+      <button type="submit">Add vitals</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===== Complaints ===== -->
+<div class="tab-panel" id="tab-complaints">
+  <div class="panel">
+    <ul class="entry-log">
+      {% for c in complaints %}
+      <li><div class="meta">{{ c.recorded_at[:16] }} · {{ c.recorded_by_name or '—' }}</div>{{ c.text }}{% if c.duration %} <span class="muted">— duration: {{ c.duration }}</span>{% endif %}</li>
+      {% else %}
+      <li class="muted">No complaints recorded yet.</li>
+      {% endfor %}
+    </ul>
+    {% if has_role('Clinician') %}
+    <form method="post" action="{{ url_for('visits.add_complaint', visit_id=visit.id) }}">
+      <div class="row">
+        <div style="flex:2;">
+          <label>Complaint</label>
+          <input type="text" name="text" list="complaint-options" autocomplete="off" placeholder="Start typing..." required>
+        </div>
+        <div>
+          <label>Duration</label>
+          <input type="text" name="duration" placeholder="e.g. 3 days">
+        </div>
+      </div>
+      <button type="submit">Add</button>
+    </form>
+    <datalist id="complaint-options">
+      {% for c in complaint_options %}
+      <option value="{{ c.text }}">
+      {% endfor %}
+    </datalist>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===== History ===== -->
+<div class="tab-panel" id="tab-history">
+  <div class="panel">
+    <ul class="entry-log">
+      {% for h in history %}
+      <li><div class="meta">{{ h.recorded_at[:16] }} · {{ h.recorded_by_name or '—' }}</div>{{ h.text }}</li>
+      {% else %}
+      <li class="muted">No history recorded yet.</li>
+      {% endfor %}
+    </ul>
+    {% if has_role('Clinician') %}
+    <form method="post" action="{{ url_for('visits.add_history', visit_id=visit.id) }}">
+      <textarea name="text" placeholder="History of presenting illness, past medical history..." required></textarea>
+      <button type="submit">Add</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===== Examination ===== -->
+<div class="tab-panel" id="tab-examination">
+  <div class="panel">
+    <ul class="entry-log">
+      {% for e in examinations %}
+      <li><div class="meta">{{ e.recorded_at[:16] }} · {{ e.recorded_by_name or '—' }}</div>{{ e.text }}</li>
+      {% else %}
+      <li class="muted">No examination findings recorded yet.</li>
+      {% endfor %}
+    </ul>
+    {% if has_role('Clinician') %}
+    <form method="post" action="{{ url_for('visits.add_examination', visit_id=visit.id) }}">
+      <textarea name="text" placeholder="Examination findings" required></textarea>
+      <button type="submit">Add</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===== Investigation ===== -->
+<div class="tab-panel" id="tab-investigation">
+  <div class="panel">
+    <h3>Lab</h3>
+    <table>
+      <tr><th>Test</th><th>Ordered</th><th>Result</th></tr>
+      {% for lo in lab_orders %}
+      <tr><td>{{ lo.billable_name }}</td><td>{{ lo.ordered_at[:16] }}</td><td>{{ lo.result_text or 'Pending' }}</td></tr>
+      {% else %}
+      <tr><td colspan="3" class="muted">No lab orders yet.</td></tr>
+      {% endfor %}
+    </table>
+    <a class="btn btn-secondary btn-small" href="{{ url_for('lab.order', visit_id=visit.id) }}">Order / view lab</a>
+
+    <h3>Radiology</h3>
+    <table>
+      <tr><th>Study</th><th>Requested</th><th>Status</th></tr>
+      {% for rr in radiology_requests %}
+      <tr><td>{{ rr.billable_name }}</td><td>{{ rr.requested_at[:16] }}</td><td>{{ rr.status }}</td></tr>
+      {% else %}
+      <tr><td colspan="3" class="muted">No radiology requests yet.</td></tr>
+      {% endfor %}
+    </table>
+    <a class="btn btn-secondary btn-small" href="{{ url_for('radiology.request_imaging', visit_id=visit.id) }}">Request / view radiology</a>
+  </div>
+</div>
+
+<!-- ===== Diagnoses ===== -->
+<div class="tab-panel" id="tab-diagnoses">
+  <div class="panel">
+    <ul class="entry-log">
+      {% for d in diagnoses %}
+      <li>
+        <div class="meta">
+          {{ d.recorded_at[:16] }} · {{ d.recorded_by_name or '—' }}
+          <span class="badge badge-dx-{{ d.status|lower }}">{{ d.status }}</span>
+        </div>
+        {{ d.text }}{% if d.icd10_code %} <span class="muted">({{ d.icd10_code }})</span>{% endif %}
+      </li>
+      {% else %}
+      <li class="muted">No diagnoses recorded yet.</li>
+      {% endfor %}
+    </ul>
+    {% if has_role('Clinician') %}
+    <form method="post" action="{{ url_for('visits.add_diagnosis', visit_id=visit.id) }}">
+      <div class="row">
+        <div style="flex:2; position:relative;">
+          <label>Diagnosis</label>
+          <input type="text" name="text" id="diagnosis-search" autocomplete="off" placeholder="Start typing (searches ICD-10)..." required>
+          <input type="hidden" name="icd10_code" id="diagnosis-code">
+          <div id="diagnosis-suggestions" class="suggestions"></div>
+        </div>
+        <div>
+          <label>Status</label>
+          <select name="status">
+            <option value="Preliminary">Preliminary</option>
+            <option value="Confirmed">Confirmed</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit">Add</button>
+    </form>
+    <script>
+    (function() {
+      var searchInput = document.getElementById('diagnosis-search');
+      var codeInput = document.getElementById('diagnosis-code');
+      var box = document.getElementById('diagnosis-suggestions');
+      if (!searchInput) { return; }
+      var debounceTimer;
+      searchInput.addEventListener('input', function() {
+        codeInput.value = '';
+        var q = searchInput.value.trim();
+        clearTimeout(debounceTimer);
+        if (q.length < 2) { box.innerHTML = ''; box.style.display = 'none'; return; }
+        debounceTimer = setTimeout(function() {
+          fetch('{{ url_for("visits.diagnoses_search") }}?q=' + encodeURIComponent(q))
+            .then(function(r) { return r.json(); })
+            .then(function(items) {
+              box.innerHTML = '';
+              if (!items.length) { box.style.display = 'none'; return; }
+              items.forEach(function(it) {
+                var opt = document.createElement('div');
+                opt.className = 'suggestion-item';
+                opt.textContent = (it.code ? it.code + ' — ' : '') + it.text;
+                opt.addEventListener('click', function() {
+                  searchInput.value = it.text;
+                  codeInput.value = it.code || '';
+                  box.innerHTML = '';
+                  box.style.display = 'none';
+                });
+                box.appendChild(opt);
+              });
+              box.style.display = 'block';
+            });
+        }, 200);
+      });
+      document.addEventListener('click', function(e) {
+        if (e.target !== searchInput) { box.style.display = 'none'; }
+      });
+    })();
+    </script>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===== Treatments ===== -->
+<div class="tab-panel" id="tab-treatments">
+  <div class="panel">
+    {% for t in treatment_orders %}
+    <div class="panel">
+      <strong>{{ t.order.description }}</strong> <span class="muted">({{ t.order.order_type }}, ordered {{ t.order.ordered_at[:16] }})</span>
+      {% if t.order.route or t.order.dose or t.order.frequency or t.order.duration %}
+      <p class="muted">
+        {{ t.order.dose or '' }}{% if t.order.route %} · {{ t.order.route }}{% endif %}{% if t.order.frequency %} · {{ t.order.frequency }}{% endif %}{% if t.order.duration %} · for {{ t.order.duration }}{% endif %}
+      </p>
+      {% endif %}
+      {% if t.order.instructions %}<p class="muted">Instructions: {{ t.order.instructions }}</p>{% endif %}
+      <p class="muted">{{ t.dose_count }} dose(s) given so far.</p>
+      <ul class="entry-log">
+        {% for item in t.doses %}
+        {% set d = item.dose %}
+        <li><div class="meta">{{ d.administered_at[:16] }} · {{ d.administered_by_name or '—' }}</div>
+          {{ d.quantity }} {{ d.item_unit or '' }} {{ d.item_name or d.billable_name }}{% if d.notes %} — {{ d.notes }}{% endif %}
+          {% if item.materials %}
+          <div class="muted" style="margin-top:2px;">Also used: {% for m in item.materials %}{{ m.quantity }} {{ m.item_unit }} {{ m.item_name }}{% if not loop.last %}, {% endif %}{% endfor %}</div>
+          {% endif %}
+        </li>
+        {% else %}
+        <li class="muted">No doses administered yet.</li>
+        {% endfor %}
+      </ul>
+      {% if has_role('Nurse','Clinician') %}
+      <button type="button" class="btn-small" onclick="document.getElementById('dose-dialog-{{ t.order.id }}').showModal()">Log dose</button>
+
+      <dialog id="dose-dialog-{{ t.order.id }}">
+        <form method="post" action="{{ url_for('visits.administer_dose', order_id=t.order.id) }}">
+          <h3>Log dose — {{ t.order.description }}</h3>
+          {% if t.order.order_type == 'drug' %}
+          <label>Item given</label>
+          <select name="inventory_item_id" required>
+            {% for i in drugs %}
+            <option value="{{ i.id }}" {{ 'selected' if i.id == t.order.inventory_item_id }}>{{ i.name }} — {{ i.stock_qty }} {{ i.unit }} in stock</option>
+            {% endfor %}
+          </select>
+          {% elif t.order.billable_id %}
+          <input type="hidden" name="billable_id" value="{{ t.order.billable_id }}">
+          <p><strong>Billed as:</strong> {{ t.order.description }}</p>
+          {% else %}
+          <label>Billable used</label>
+          <select name="billable_id" required>
+            {% for pb in procedure_billables %}
+            <option value="{{ pb.id }}">{{ pb.name }} — {{ pb.price|money }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
+          <label>Quantity</label>
+          <input type="number" step="0.01" name="quantity" value="1" required>
+
+          {% if t.order.order_type == 'procedure' %}
+          <label>Procedure notes</label>
+          <textarea name="notes" placeholder="What was done, findings, condition afterward..."></textarea>
+          {% else %}
+          <label>Notes (optional)</label>
+          <input type="text" name="notes" placeholder="e.g. tolerated well">
+          {% endif %}
+
+          <h4>Billables used (optional)</h4>
+          <p class="muted">e.g. syringe, cotton swabs, gloves — each is billed and deducted from stock.</p>
+          <div id="material-rows-{{ t.order.id }}"></div>
+          <button type="button" class="btn-secondary btn-small" onclick="addMaterialRow('material-rows-{{ t.order.id }}')">+ Add billable used</button>
+
+          <div class="row" style="margin-top:16px;">
+            <button type="button" class="btn-secondary" onclick="document.getElementById('dose-dialog-{{ t.order.id }}').close()">Cancel</button>
+            <button type="submit">Log dose</button>
+          </div>
+        </form>
+      </dialog>
+      {% endif %}
+    </div>
+    {% else %}
+    <p class="muted">No treatments ordered yet.</p>
+    {% endfor %}
+
+    <template id="material-row-template">
+      <div class="row material-row">
+        <div>
+          <select name="material_item_id">
+            {% for m in materials %}
+            <option value="{{ m.id }}">{{ m.name }} — {{ m.stock_qty }} {{ m.unit }} in stock</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="max-width:120px;">
+          <input type="number" step="0.01" name="material_quantity" placeholder="Qty">
+        </div>
+        <div style="flex:0;"><button type="button" class="btn-secondary btn-small" onclick="this.closest('.material-row').remove()">Remove</button></div>
+      </div>
+    </template>
+    <script>
+    function addMaterialRow(containerId) {
+      var tpl = document.getElementById('material-row-template');
+      var clone = tpl.content.cloneNode(true);
+      document.getElementById(containerId).appendChild(clone);
+    }
+    </script>
+
+    {% if has_role('Clinician') %}
+    <h3>Order a treatment</h3>
+    <form method="post" action="{{ url_for('visits.add_treatment_order', visit_id=visit.id) }}">
+      <label>Type</label>
+      <select name="order_type" id="order-type-select">
+        <option value="drug">Drug</option>
+        <option value="procedure">Procedure / intervention</option>
+      </select>
+
+      <div id="drug-fields">
+        <label>Drug</label>
+        <input type="text" name="drug_name" id="drug-name-input" list="drug-options" autocomplete="off" placeholder="Start typing a drug name...">
+        <input type="hidden" name="inventory_item_id" id="drug-item-id">
+        <p class="muted" id="drug-stock-hint">&nbsp;</p>
+        <div class="row">
+          <div>
+            <label>Route</label>
+            <select name="route">
+              <option value="Oral" selected>Oral</option>
+              <option value="IV">IV</option>
+              <option value="IM">IM</option>
+              <option value="SC">Subcutaneous (SC)</option>
+              <option value="Sublingual">Sublingual</option>
+              <option value="Topical">Topical</option>
+              <option value="Inhaled">Inhaled / nebulized</option>
+              <option value="PR">Rectal (PR)</option>
+              <option value="PV">Vaginal (PV)</option>
+              <option value="Nasal">Nasal</option>
+              <option value="Ophthalmic">Ophthalmic (eye)</option>
+              <option value="Otic">Otic (ear)</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div><label>Dose / amount</label><input type="text" name="dose" placeholder="e.g. 500mg"></div>
+          <div>
+            <label>Frequency</label>
+            <select name="frequency" id="frequency-select">
+              <option value="STAT">STAT</option>
+              <option value="OD">OD (once daily)</option>
+              <option value="BD" selected>BD (twice daily)</option>
+              <option value="TDS">TDS (three times daily)</option>
+              <option value="QID">QID (four times daily)</option>
+              <option value="Q4H">Every 4 hours</option>
+              <option value="Q6H">Every 6 hours</option>
+              <option value="Q8H">Every 8 hours</option>
+              <option value="Q12H">Every 12 hours</option>
+              <option value="PRN">PRN (as needed)</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Other">Other...</option>
+            </select>
+          </div>
+          <div><label>Duration</label><input type="text" name="duration" placeholder="e.g. 5 days"></div>
+        </div>
+        <div id="frequency-other-wrap" style="display:none;">
+          <label>Specify frequency</label>
+          <input type="text" name="frequency_other" placeholder="e.g. every other day">
+        </div>
+        <label>Instructions</label>
+        <input type="text" name="instructions" placeholder="e.g. after meals, avoid alcohol">
+      </div>
+
+      <div id="procedure-fields" style="display:none;">
+        {% if procedure_billables %}
+        <label>Procedure</label>
+        <select name="billable_id">
+          {% for pb in procedure_billables %}
+          <option value="{{ pb.id }}">{{ pb.name }} — {{ pb.price|money }}</option>
+          {% endfor %}
+        </select>
+        <p class="muted">From the billables price list (Admin → Billables) — this is what each administration of this order will be billed as.</p>
+        {% else %}
+        <p class="muted">No procedures in the billables list yet — ask Admin to add one under Admin → Billables before ordering a procedure here.</p>
+        {% endif %}
+      </div>
+
+      <button type="submit">Order</button>
+    </form>
+    <datalist id="drug-options">
+      {% for i in drugs %}
+      <option value="{{ i.name }}" label="{{ i.name }} — {{ i.stock_qty }} {{ i.unit }} in stock">{{ i.name }} — {{ i.stock_qty }} {{ i.unit }} in stock</option>
+      {% endfor %}
+    </datalist>
+    <script>
+    (function() {
+      var drugsData = {{ drugs_json|safe }};
+
+      var orderTypeSelect = document.getElementById('order-type-select');
+      var drugFields = document.getElementById('drug-fields');
+      var procedureFields = document.getElementById('procedure-fields');
+      function toggleOrderType() {
+        var isDrug = orderTypeSelect.value === 'drug';
+        drugFields.style.display = isDrug ? '' : 'none';
+        procedureFields.style.display = isDrug ? 'none' : '';
+      }
+      if (orderTypeSelect) {
+        orderTypeSelect.addEventListener('change', toggleOrderType);
+        toggleOrderType();
+      }
+
+      var drugInput = document.getElementById('drug-name-input');
+      var drugItemId = document.getElementById('drug-item-id');
+      var stockHint = document.getElementById('drug-stock-hint');
+      if (drugInput) {
+        drugInput.addEventListener('input', function() {
+          var typed = drugInput.value.trim().toLowerCase();
+          var match = drugsData.find(function(d) { return d.name.toLowerCase() === typed; });
+          if (match) {
+            drugItemId.value = match.id;
+            var lowStock = match.stock_qty <= 0;
+            stockHint.textContent = lowStock
+              ? ('OUT OF STOCK — ' + match.name)
+              : ('In stock: ' + match.stock_qty + ' ' + match.unit);
+            stockHint.style.color = lowStock ? 'var(--danger)' : '';
+          } else {
+            drugItemId.value = '';
+            stockHint.textContent = typed ? 'Not in pharmacy stock — will be recorded as ordered only.' : ' ';
+            stockHint.style.color = '';
+          }
+        });
+      }
+
+      var freqSelect = document.getElementById('frequency-select');
+      var freqOtherWrap = document.getElementById('frequency-other-wrap');
+      function toggleFreqOther() {
+        freqOtherWrap.style.display = freqSelect.value === 'Other' ? '' : 'none';
+      }
+      if (freqSelect) {
+        freqSelect.addEventListener('change', toggleFreqOther);
+        toggleFreqOther();
+      }
+    })();
+    </script>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===== Notes ===== -->
+<div class="tab-panel" id="tab-notes">
+  <div class="panel">
+    <ul class="entry-log">
+      {% for n in notes %}
+      <li>
+        <div class="meta">
+          <span class="note-tag note-tag-{{ n.note_type }}">{{ 'Nursing note' if n.note_type == 'nursing' else "Doctor's note" }}</span>
+          {{ n.recorded_at[:16] }} · {{ n.author_name or '—' }}
+        </div>
+        {{ n.text }}
+      </li>
+      {% else %}
+      <li class="muted">No notes yet.</li>
+      {% endfor %}
+    </ul>
+    {% if has_role('Nurse','Clinician') %}
+    <form method="post" action="{{ url_for('visits.add_note', visit_id=visit.id) }}">
+      <label>Note type</label>
+      <select name="note_type">
+        <option value="nursing">Nursing note</option>
+        <option value="doctor">Doctor's note</option>
+      </select>
+      <textarea name="text" placeholder="Add a note" required></textarea>
+      <button type="submit">Add note</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+(function() {
+  var buttons = document.querySelectorAll('#tab-nav button');
+  var panels = document.querySelectorAll('.tab-panel');
+  function activate(name) {
+    buttons.forEach(function(b) { b.classList.toggle('active', b.dataset.tab === name); });
+    panels.forEach(function(p) { p.classList.toggle('active', p.id === 'tab-' + name); });
+  }
+  buttons.forEach(function(b) {
+    b.addEventListener('click', function() {
+      activate(b.dataset.tab);
+      history.replaceState(null, '', '#' + b.dataset.tab);
+    });
+  });
+  var initial = (location.hash || '').replace('#', '');
+  if (initial && document.getElementById('tab-' + initial)) {
+    activate(initial);
+  }
+})();
+</script>
+{% endblock %}

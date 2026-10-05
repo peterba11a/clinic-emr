@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Terms of Use{% endblock %}
+{% block content %}
+<div class="panel" style="max-width:640px;margin:40px auto;">
+  <h1>Terms of Use</h1>
+  <p class="muted">Please read this before continuing — you'll only need to do this once unless it's ever updated.</p>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% for p in paragraphs %}
+  <p>{{ p }}</p>
+  {% endfor %}
+  <form method="post">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <label style="display:flex;align-items:flex-start;gap:8px;font-weight:normal;margin-top:16px;">
+      <input type="checkbox" name="agree" value="1" required style="width:auto;margin-top:4px;">
+      <span>I have read and understood this, and I agree to it.</span>
+    </label>
+    <button type="submit" style="width:100%;margin-top:12px;">Continue</button>
+  </form>
+</div>
+{% endblock %}

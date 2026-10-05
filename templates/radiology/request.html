@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Radiology — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>Radiology — {{ patient.full_name }}</h1>
+<div class="panel">
+  <form method="post">
+    <label>Imaging</label>
+    <select name="billable_id" required>
+      {% for t in imaging_types %}<option value="{{ t.id }}">{{ t.name }} — {{ t.price|money }}</option>{% endfor %}
+    </select>
+    <label>Reason</label>
+    <input type="text" name="reason">
+    <button type="submit">Send request</button>
+  </form>
+</div>
+
+<h2>Requests this visit</h2>
+<div class="panel">
+  <table>
+    <tr><th>Imaging</th><th>Status</th><th>Findings</th><th></th></tr>
+    {% for r in requests %}
+    <tr>
+      <td>{{ r.imaging_name }}</td>
+      <td><span class="badge badge-{{ 'completed' if r.status=='done' else 'waiting' }}">{{ r.status }}</span></td>
+      <td>{{ r.findings_text or '—' }}</td>
+      <td>
+        {% if r.status != 'done' %}
+        <form method="post" action="{{ url_for('radiology.mark_done', request_id=r.id) }}" class="row" style="align-items:flex-end;margin:0;">
+          <div><input type="text" name="findings_text" placeholder="Findings (optional)"></div>
+          <div style="flex:0;"><button type="submit" class="btn-small">Mark done</button></div>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="muted">No radiology requests yet.</td></tr>
+    {% endfor %}
+  </table>
+  <a class="btn btn-secondary" href="{{ url_for('visits.detail', visit_id=visit.id) }}">Back to visit</a>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "print/_base_print.html" %}
+{% block title %}Prescription{% endblock %}
+{% block doc_title %}Prescription{% endblock %}
+{% block body %}
+<div class="row">
+  <div><strong>Patient:</strong> {{ patient.full_name }} ({{ patient.patient_code }})</div>
+  <div><strong>Date:</strong> {{ visit.visit_date[:10] }}</div>
+</div>
+<div class="row">
+  <div><strong>Age/Sex:</strong> {{ patient.age_years or patient.dob or '—' }} / {{ patient.sex or '—' }}</div>
+</div>
+
+<h3>Diagnosis</h3>
+{% if diagnoses %}
+<ul>
+  {% for d in diagnoses %}
+  <li>{{ d.text }}{% if d.icd10_code %} ({{ d.icd10_code }}){% endif %} — {{ d.status }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>{{ visit.diagnosis or '—' }}</p>
+{% endif %}
+
+<h3>Rx</h3>
+{% if drug_orders %}
+<table>
+  <tr><th>Drug</th><th>Route</th><th>Dose</th><th>Frequency</th><th>Duration</th><th>Instructions</th></tr>
+  {% for o in drug_orders %}
+  <tr>
+    <td>{{ o.description }}</td>
+    <td>{{ o.route or '—' }}</td>
+    <td>{{ o.dose or '—' }}</td>
+    <td>{{ o.frequency or '—' }}</td>
+    <td>{{ o.duration or '—' }}</td>
+    <td>{{ o.instructions or '—' }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if doses_by_order and (doses_by_order.values() | map('length') | sum) > 0 %}
+<h3>Medication administration record</h3>
+<table>
+  <tr><th>Drug</th><th>Date/time</th><th>Qty</th><th>Given by</th><th>Notes</th></tr>
+  {% for o in drug_orders %}
+    {% for d in doses_by_order.get(o.id, []) %}
+    <tr>
+      <td>{{ o.description }}</td>
+      <td>{{ d.administered_at[:16] }}</td>
+      <td>{{ d.quantity }}</td>
+      <td>{{ d.administered_by_name or '—' }}</td>
+      <td>{{ d.notes or '—' }}</td>
+    </tr>
+    {% endfor %}
+  {% endfor %}
+</table>
+{% endif %}
+{% else %}
+<p style="white-space:pre-line;">{{ visit.treatment_notes or '—' }}</p>
+{% endif %}
+
+{% if dispensed %}
+<h3>Dispensed at this clinic</h3>
+<table>
+  <tr><th>Drug</th><th>Quantity</th></tr>
+  {% for d in dispensed %}
+  <tr><td>{{ d.name }}</td><td>{{ d.quantity }} {{ d.unit }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if visit.follow_up_date %}<p><strong>Follow-up:</strong> {{ visit.follow_up_date }}</p>{% endif %}
+
+<p style="margin-top:40px;">Prescribed by: <strong>{{ visit.clinician_name or '—' }}</strong></p>
+{% endblock %}

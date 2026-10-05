@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Connect a device{% endblock %}
+{% block content %}
+<h1>Connect another device</h1>
+<p class="muted">Follow these steps on any other computer, laptop, or tablet in the clinic that should reach this system — a consultation-room laptop, a second reception desk, and so on. Nothing needs to be installed on it; it just needs a web browser.</p>
+
+<div class="panel">
+  <h2>1. Connect it to the same network</h2>
+  <p>Make sure the new device is on the same WiFi/network as this computer (the one running Clinic EMR).</p>
+
+  <h2>2. Open a browser and go to this address</h2>
+  <p style="font-size:20px; font-weight:700; background:#eef1f4; padding:12px 16px; border-radius:8px; display:inline-block;">
+    {{ hostname_url }}
+  </p>
+  <p class="muted">Use this address on every device — bookmark it. It keeps working even if this computer's numeric network address changes after a restart, because it's a fixed name (like a network printer's name) rather than a raw address.</p>
+
+  <h2>3. Log in</h2>
+  <p>Use the staff username and password given to that person. Staff accounts are managed under <a href="{{ url_for('admin.users') }}">Admin → Staff accounts</a>.</p>
+</div>
+
+<div class="panel">
+  <h2>If that address doesn't work</h2>
+  <p>Some older Windows or Android setups don't resolve <code>.local</code> names. As a fallback, try the numeric address below instead — but note this one <strong>can change</strong> if this computer restarts and the router assigns it a new address, so prefer the address above whenever it works:</p>
+  <p style="font-size:16px; font-weight:600; background:#eef1f4; padding:10px 14px; border-radius:8px; display:inline-block;">
+    {{ ip_url }}
+  </p>
+  <p class="muted">If devices on this network regularly can't resolve <code>.local</code> names, there are two ways to make the numeric address above permanent — pick whichever is easier for you:</p>
+  <ol>
+    <li>Ask whoever manages the clinic's router to set a fixed ("static" or "reserved") address for this computer, or</li>
+    <li>Run the script below once, directly on this computer — no router access needed.</li>
+  </ol>
+</div>
+
+<div class="panel">
+  <h2>Alternative: fix this computer's own address (no router needed)</h2>
+  <p>This is a small script that runs once on this computer. It takes the network address this computer already has right now and makes it permanent, so it can never change after a restart — nothing about how this computer connects to the network is altered, it just stops being able to change.</p>
+  {% if static_ip_script_available %}
+  <p><a class="btn btn-secondary" href="{{ url_for('admin.download_static_ip_script') }}">Download the script</a></p>
+  <p class="muted">It was also installed to the Start Menu as "Make this computer's address permanent" when Clinic EMR was set up. Double-click it (on this computer, not a staff device) and accept the Windows prompt asking for permission — that prompt is expected, since changing network settings needs it. It explains what it's doing as it runs.</p>
+  {% else %}
+  <p class="muted">Not available in this copy of Clinic EMR (it's only bundled with the installed Windows version). Use the router option above instead.</p>
+  {% endif %}
+</div>
+{% endblock %}

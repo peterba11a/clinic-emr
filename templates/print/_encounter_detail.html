@@ -1,0 +1,149 @@
+{# Shared partial: renders everything recorded for ONE visit (every tab of
+   the clinical record), not just a one-line summary. Included by both
+   visit_summary.html (a single visit) and complete_record.html (looped
+   over every visit a patient has ever had), so both documents stay
+   comprehensive and in sync with one piece of markup. Expects the same
+   context keys gather_encounter() in routes/visits.py returns, plus
+   `visit` and `referrals`. #}
+<div class="encounter-block">
+  <h3>Visit — {{ visit.visit_date[:16] }}
+    <span class="badge badge-{{ visit.status }}">{{ visit.status.replace('_',' ') }}</span>
+    <span class="badge badge-priority-{{ visit.priority }}">{{ visit.priority }}</span>
+  </h3>
+
+  {% if admission %}
+  <p>
+    <strong>Admission:</strong> {{ admission.ward_name }} / {{ admission.bed_name }},
+    {{ admission.admitted_at[:16] }}
+    {% if admission.status == 'discharged' %}
+      to {{ admission.discharged_at[:16] }}
+    {% else %}
+      (still admitted)
+    {% endif %}
+  </p>
+  {% endif %}
+
+  <h4>Presenting complaint(s)</h4>
+  {% if complaints %}
+  <ul>
+    {% for c in complaints %}<li>{{ c.text }}{% if c.duration %} — {{ c.duration }}{% endif %}</li>{% endfor %}
+  </ul>
+  {% else %}<p class="muted">None recorded.</p>{% endif %}
+
+  <h4>Vitals</h4>
+  {% if vitals %}
+  <table>
+    <tr><th>Date/time</th><th>BP</th><th>Pulse</th><th>Temp</th><th>RR</th><th>SpO2</th><th>Weight</th><th>RBS</th></tr>
+    {% for v in vitals %}
+    <tr>
+      <td>{{ v.recorded_at[:16] }}</td><td>{{ v.bp or '—' }}</td><td>{{ v.pulse or '—' }}</td>
+      <td>{{ v.temp_c or '—' }}°C</td><td>{{ v.resp_rate or '—' }}</td><td>{{ v.spo2 or '—' }}%</td>
+      <td>{{ v.weight_kg or '—' }}kg</td><td>{{ v.rbs or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">None recorded.</p>{% endif %}
+
+  <h4>History</h4>
+  {% if history %}
+  <ul>{% for h in history %}<li>{{ h.text }} <span class="muted">({{ h.recorded_at[:16] }})</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">None recorded.</p>{% endif %}
+
+  <h4>Examination</h4>
+  {% if examinations %}
+  <ul>{% for e in examinations %}<li>{{ e.text }} <span class="muted">({{ e.recorded_at[:16] }})</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">None recorded.</p>{% endif %}
+
+  <h4>Investigations</h4>
+  {% if lab_orders or radiology_requests %}
+  {% if lab_orders %}
+  <p><strong>Lab:</strong></p>
+  <ul>
+    {% for lo in lab_orders %}
+    <li>{{ lo.billable_name }} —
+      {% if lo.result_text %}{{ lo.result_text }} ({{ lo.resulted_at[:16] if lo.resulted_at else '—' }}){% else %}pending{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if radiology_requests %}
+  <p><strong>Radiology:</strong></p>
+  <ul>
+    {% for rr in radiology_requests %}
+    <li>{{ rr.billable_name }} — {{ rr.status }}
+      {% if rr.findings_text %}: {{ rr.findings_text }}{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% else %}<p class="muted">None ordered.</p>{% endif %}
+
+  <h4>Diagnoses</h4>
+  {% if diagnoses %}
+  <ul>
+    {% for d in diagnoses %}
+    <li>{{ d.text }}{% if d.icd10_code %} ({{ d.icd10_code }}){% endif %} — {{ d.status }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">None recorded.</p>{% endif %}
+
+  <h4>Treatments</h4>
+  {% if treatment_orders %}
+  {% for t in treatment_orders %}
+  <p>
+    <strong>{{ t.order.description }}</strong>
+    {% if t.order.order_type == 'drug' %}
+      — {{ t.order.route or '—' }}, {{ t.order.dose or '—' }}, {{ t.order.frequency or '—' }},
+      {{ t.order.duration or '—' }}{% if t.order.instructions %} ({{ t.order.instructions }}){% endif %}
+    {% else %}
+      (procedure)
+    {% endif %}
+  </p>
+  {% if t.doses %}
+  <ul>
+    {% for entry in t.doses %}
+    <li>
+      {{ entry.dose.administered_at[:16] }} — qty {{ entry.dose.quantity }}
+      {% if entry.dose.administered_by_name %}by {{ entry.dose.administered_by_name }}{% endif %}
+      {% if entry.dose.notes %}— {{ entry.dose.notes }}{% endif %}
+      {% if entry.materials %}
+        (materials: {% for m in entry.materials %}{{ m.item_name }} x{{ m.quantity }}{% if not loop.last %}, {% endif %}{% endfor %})
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endfor %}
+  {% else %}<p class="muted">None ordered.</p>{% endif %}
+
+  <h4>Notes</h4>
+  {% if notes %}
+  <ul>
+    {% for n in notes %}
+    <li>[{{ n.note_type }}] {{ n.text }} <span class="muted">— {{ n.author_name or '—' }}, {{ n.recorded_at[:16] }}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">None recorded.</p>{% endif %}
+
+  {% if referrals %}
+  <h4>Referrals</h4>
+  <ul>
+    {% for r in referrals %}
+    <li>To {{ r.destination }}{% if r.reason %} — {{ r.reason }}{% endif %}
+      <span class="muted">({{ r.created_by_name or '—' }}, {{ r.created_at[:16] }})</span></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if admission and admission.status == 'discharged' %}
+  <h4>Discharge</h4>
+  <p>
+    <strong>Discharged:</strong> {{ admission.discharged_at[:16] }}{% if admission.discharged_by_name %} (by {{ admission.discharged_by_name }}){% endif %}<br>
+    <strong>Discharge notes:</strong> {{ admission.discharge_summary or '—' }}<br>
+    {% if admission.discharge_medications %}<strong>Discharge medications:</strong> {{ admission.discharge_medications }}<br>{% endif %}
+    {% if admission.follow_up_date %}<strong>Follow-up date:</strong> {{ admission.follow_up_date }}<br>{% endif %}
+  </p>
+  {% endif %}
+
+  <p class="muted"><strong>Seen by:</strong> {{ visit.clinician_name or '—' }}</p>
+</div>

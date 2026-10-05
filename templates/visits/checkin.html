@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Check in{% endblock %}
+{% block content %}
+<h1>Check in {{ patient.full_name }}</h1>
+<div class="panel">
+  <form method="post">
+    <label>Consultation type</label>
+    <select name="billable_id">
+      <option value="">— none (add billing later) —</option>
+      {% for c in consultations %}
+      <option value="{{ c.id }}">{{ c.name }} — {{ c.price|money }}</option>
+      {% endfor %}
+    </select>
+
+    <h2>Triage</h2>
+    <p class="muted">A quick assessment so the clinician can prioritize who to see first — the clinician will see this too, no need to repeat it.</p>
+
+    <label>Chief complaint</label>
+    <textarea name="complaint" placeholder="What brought the patient in today?"></textarea>
+
+    <label>Priority</label>
+    <select name="priority">
+      <option value="Routine" selected>Routine</option>
+      <option value="Urgent">Urgent</option>
+      <option value="Emergency">Emergency</option>
+    </select>
+
+    <h3>Vitals (optional, fill in what you can measure)</h3>
+    <div class="row">
+      <div><label>Blood pressure</label><input type="text" name="bp" placeholder="120/80"></div>
+      <div><label>Pulse (bpm)</label><input type="number" name="pulse"></div>
+      <div><label>Temperature (°C)</label><input type="number" step="0.1" name="temp_c"></div>
+      <div><label>Respiratory rate</label><input type="number" name="resp_rate"></div>
+    </div>
+    <div class="row">
+      <div><label>SpO2 (%)</label><input type="number" name="spo2"></div>
+      <div><label>Weight (kg)</label><input type="number" step="0.1" name="weight_kg"></div>
+      <div><label>Height (cm)</label><input type="number" step="0.1" name="height_cm"></div>
+      <div><label>RBS (random blood sugar)</label><input type="number" step="0.1" name="rbs"></div>
+    </div>
+    <label>Other measurements</label>
+    <input type="text" name="vitals_other" placeholder="Anything else not covered above">
+
+    <button type="submit">Add to waiting list</button>
+  </form>
+</div>
+{% endblock %}

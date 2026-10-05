@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Procedure — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>Record procedure for {{ patient.full_name }}</h1>
+<div class="panel">
+  <form method="post">
+    <label>Procedure *</label>
+    <select name="billable_id" required>
+      {% for p in procedure_types %}
+      <option value="{{ p.id }}">{{ p.name }} — {{ p.price|money }}</option>
+      {% endfor %}
+    </select>
+    <label>Notes</label>
+    <textarea name="notes"></textarea>
+
+    <h3>Materials used (optional)</h3>
+    <p class="muted">Add specific consumables used, if you want the bill to reflect them individually. Each one is billed and deducted from stock.</p>
+    <div id="material-rows"></div>
+    <button type="button" class="btn-secondary btn-small" onclick="addMaterialRow()">+ Add material</button>
+    <br>
+    <button type="submit">Record procedure</button>
+  </form>
+</div>
+
+<h2>Procedures this visit</h2>
+<div class="panel">
+  <table>
+    <tr><th>Procedure</th><th>Notes</th><th>Time</th></tr>
+    {% for h in history %}
+    <tr><td>{{ h.billable_name }}</td><td>{{ h.notes or '—' }}</td><td>{{ h.performed_at[11:16] }}</td></tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">No procedures recorded yet.</td></tr>
+    {% endfor %}
+  </table>
+  <a class="btn btn-secondary" href="{{ url_for('visits.detail', visit_id=visit.id) }}">Back to visit</a>
+</div>
+
+<template id="material-row-template">
+  <div class="row material-row">
+    <div>
+      <select name="material_item_id">
+        {% for m in materials %}
+        <option value="{{ m.id }}">{{ m.name }} — {{ m.stock_qty }} {{ m.unit }} in stock</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="max-width:120px;">
+      <input type="number" step="0.01" name="material_quantity" placeholder="Qty">
+    </div>
+    <div style="flex:0;"><button type="button" class="btn-secondary btn-small" onclick="this.closest('.material-row').remove()">Remove</button></div>
+  </div>
+</template>
+<script>
+function addMaterialRow() {
+  const tpl = document.getElementById('material-row-template');
+  const clone = tpl.content.cloneNode(true);
+  document.getElementById('material-rows').appendChild(clone);
+}
+</script>
+{% endblock %}

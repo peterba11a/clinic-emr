@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Backup status{% endblock %}
+{% block content %}
+<h1>Backup status</h1>
+<div class="panel">
+  {% if status %}
+    <p><strong>Last backup attempt:</strong> {{ status.ran_at }}</p>
+    <p><strong>Result:</strong>
+      {% if status.success %}<span class="badge badge-completed">Success</span>{% else %}<span class="badge badge-warn">Failed</span>{% endif %}
+    </p>
+    <p><strong>Snapshot file:</strong> {{ status.snapshot_filename or '—' }}</p>
+    {% if status.error %}<p class="muted">{{ status.error }}</p>{% endif %}
+  {% else %}
+    <p class="muted">No backup has run yet on this machine.</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('admin.run_backup_now') }}" style="display:inline;">
+    <button type="submit" class="btn-secondary">Run backup now</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Connecting Google Drive (one-time setup)</h2>
+  <p class="muted">There's no Google sign-in inside Clinic EMR itself — you link the account in Google's own app, then just tell Clinic EMR which folder that app is syncing:</p>
+  <ol>
+    <li>On this computer, install <strong>Google Drive for Desktop</strong> (free, from Google) if it isn't already.</li>
+    <li>Sign in there with a Google account owned by the clinic (not a personal one), and turn on 2-factor authentication on it.</li>
+    <li>Note the folder it syncs to on this computer — usually something like <code>C:\Users\Clinic\Google Drive\My Drive\</code>. You can create a subfolder in there just for these backups, e.g. <code>...\My Drive\ClinicBackups</code>.</li>
+    <li>Paste that folder's path below and save it.</li>
+  </ol>
+  <p class="muted">That's it — from then on, Clinic EMR writes an encrypted snapshot there every night, and Google Drive's own app uploads it whenever this computer has internet. Nothing else to configure, no tokens or API keys.</p>
+</div>
+
+<div class="panel">
+  <h2>Backup folder</h2>
+  {% if not current_folder %}<p class="muted"><strong>Not set up yet</strong> — backups are only being made locally on this computer until a folder is saved below.</p>{% endif %}
+  <form method="post">
+    <label>Folder path</label>
+    <input type="text" name="backup_folder_path" value="{{ current_folder }}" placeholder="e.g. C:\Users\Clinic\Google Drive\My Drive\ClinicBackups">
+    <button type="submit">Save folder</button>
+  </form>
+</div>
+{% endblock %}

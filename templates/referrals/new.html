@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Referral — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>Referral for {{ patient.full_name }}</h1>
+<div class="panel">
+  <form method="post">
+    <label>Referring to *</label>
+    <input type="text" name="destination" placeholder="e.g. Kiruddu National Referral Hospital" required>
+    <label>Reason for referral</label>
+    <textarea name="reason"></textarea>
+    <button type="submit">Create &amp; print referral</button>
+  </form>
+</div>
+
+{% if referrals %}
+<h2>Previous referrals this visit</h2>
+<div class="panel">
+  <table>
+    <tr><th>To</th><th>Created</th><th></th></tr>
+    {% for r in referrals %}
+    <tr><td>{{ r.destination }}</td><td>{{ r.created_at[:16] }}</td>
+      <td><a target="_blank" href="{{ url_for('printing.referral', referral_id=r.id) }}">Print</a></td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

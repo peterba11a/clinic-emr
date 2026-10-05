@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit user' if user else 'Add user' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Edit ' + user.full_name if user else 'Add staff account' }}</h1>
+<div class="panel">
+  <form method="post">
+    {% if not user %}
+    <label>Username *</label>
+    <input type="text" name="username" required>
+    {% endif %}
+    <label>Full name *</label>
+    <input type="text" name="full_name" value="{{ user.full_name if user else '' }}" required>
+
+    <label>Roles (select one or more) *</label>
+    {% for r in all_roles %}
+    <label style="display:inline-block;margin-right:16px;font-size:14px;color:inherit;">
+      <input type="checkbox" name="role_ids" value="{{ r.id }}" {{ 'checked' if r.id|string in current_role_ids }}>
+      {{ r.name }}
+    </label>
+    {% endfor %}
+
+    {% if user %}
+    <label style="margin-top:16px;">
+      <input type="checkbox" name="active" value="1" {{ 'checked' if user.active }}> Account active
+    </label>
+    <label>Reset password (leave blank to keep current password)</label>
+    <input type="password" name="new_password">
+    {% else %}
+    <label>Password *</label>
+    <input type="password" name="password" required>
+    {% endif %}
+
+    <button type="submit">{{ 'Save changes' if user else 'Create account' }}</button>
+  </form>
+</div>
+{% endblock %}

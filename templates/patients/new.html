@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Register patient{% endblock %}
+{% block content %}
+<h1>Register new patient</h1>
+<div class="panel">
+  <form method="post">
+    <label>Full name *</label>
+    <input type="text" name="full_name" required autofocus>
+    <div class="row">
+      <div><label>Date of birth</label><input type="date" name="dob"></div>
+      <div><label>Or age (years)</label><input type="number" name="age_years" min="0"></div>
+      <div><label>Sex</label>
+        <select name="sex"><option value="">—</option><option>M</option><option>F</option><option>Other</option></select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Phone</label><input type="tel" name="phone"></div>
+      <div><label>Village / address</label><input type="text" name="village"></div>
+    </div>
+    <button type="submit">Register patient</button>
+  </form>
+</div>
+{% endblock %}

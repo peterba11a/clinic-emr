@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Invoice — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>Invoice — {{ patient.full_name }} <span class="muted">({{ patient.patient_code }})</span></h1>
+<div class="panel">
+  <table>
+    <tr><th>Item</th><th>Category</th><th>Qty</th><th>Unit price</th><th class="right">Line total</th></tr>
+    {% for i in items %}
+    <tr>
+      <td>{{ i.description }}</td>
+      <td>{{ i.category }}</td>
+      <td>{{ i.quantity }}</td>
+      <td>{{ i.unit_price|money }}</td>
+      <td class="right">{{ i.line_total|money }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">No charges recorded yet.</td></tr>
+    {% endfor %}
+  </table>
+  <div class="row" style="justify-content:flex-end;text-align:right;">
+    <div style="max-width:260px;">
+      <p><strong>Total:</strong> {{ total|money }}</p>
+      <p><strong>Paid:</strong> {{ paid|money }}</p>
+      <p><strong>Balance:</strong> {{ balance|money }}</p>
+    </div>
+  </div>
+
+  {% if has_role('Reception') and balance > 0 %}
+  <form method="post" action="{{ url_for('billing.pay', invoice_id=invoice_id) }}" class="row" style="align-items:flex-end;">
+    <div><label>Amount received</label><input type="number" step="0.01" name="amount" required></div>
+    <div><label>Method</label>
+      <select name="method"><option value="cash">Cash</option><option value="mobile_money">Mobile money</option><option value="other">Other</option></select>
+    </div>
+    <div style="flex:0;"><button type="submit">Record payment</button></div>
+  </form>
+  {% endif %}
+
+  <a class="btn btn-secondary" target="_blank" href="{{ url_for('printing.receipt', invoice_id=invoice_id) }}">Print receipt</a>
+  <a class="btn btn-secondary" href="{{ url_for('visits.queue') }}">Back to queue</a>
+</div>
+
+{% if payments %}
+<h2>Payments recorded</h2>
+<div class="panel">
+  <table>
+    <tr><th>Amount</th><th>Method</th><th>By</th><th>When</th></tr>
+    {% for p in payments %}
+    <tr><td>{{ p.amount|money }}</td><td>{{ p.method }}</td><td>{{ p.full_name or '—' }}</td><td>{{ p.paid_at[:16] }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

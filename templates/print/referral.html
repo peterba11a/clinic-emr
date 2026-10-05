@@ -1,0 +1,26 @@
+{% extends "print/_base_print.html" %}
+{% block title %}Referral{% endblock %}
+{% block doc_title %}Referral letter{% endblock %}
+{% block body %}
+<div class="row">
+  <div><strong>Patient:</strong> {{ patient.full_name }} ({{ patient.patient_code }})</div>
+  <div><strong>Date:</strong> {{ ref.created_at[:10] }}</div>
+</div>
+<p><strong>Age/Sex:</strong> {{ patient.age_years or patient.dob or '—' }} / {{ patient.sex or '—' }}</p>
+
+<h3>Referred to</h3>
+<p>{{ ref.destination }}</p>
+
+<h3>Reason for referral</h3>
+<p style="white-space:pre-line;">{{ ref.reason or '—' }}</p>
+
+<h3>Clinical summary</h3>
+<p><strong>Complaint:</strong> {{ visit.complaint or '—' }}</p>
+<p><strong>Diagnosis:</strong> {{ visit.diagnosis or '—' }}</p>
+<p><strong>Vitals:</strong>
+  Temp {{ visit.temp_c or '—' }}°C · BP {{ visit.bp or '—' }} ·
+  Pulse {{ visit.pulse or '—' }} · Weight {{ visit.weight_kg or '—' }}kg
+</p>
+
+<p style="margin-top:40px;">Referred by: <strong>{{ ref.clinician_name or '—' }}</strong></p>
+{% endblock %}

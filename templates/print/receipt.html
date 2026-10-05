@@ -1,0 +1,34 @@
+{% extends "print/_base_print.html" %}
+{% block title %}Receipt{% endblock %}
+{% block doc_title %}Receipt{% endblock %}
+{% block body %}
+<div class="row">
+  <div><strong>Patient:</strong> {{ patient.full_name }} ({{ patient.patient_code }})</div>
+  <div><strong>Date:</strong> {{ invoice.created_at[:10] }}</div>
+</div>
+
+<table>
+  <tr><th>Item</th><th>Qty</th><th class="right">Unit price</th><th class="right">Total</th></tr>
+  {% for i in items %}
+  <tr><td>{{ i.description }}</td><td>{{ i.quantity }}</td><td class="right">{{ i.unit_price|money }}</td><td class="right">{{ i.line_total|money }}</td></tr>
+  {% endfor %}
+</table>
+
+<div class="row" style="justify-content:flex-end;">
+  <div style="max-width:260px;">
+    <p><strong>Total:</strong> {{ total|money }}</p>
+    <p><strong>Paid:</strong> {{ paid|money }}</p>
+    <p><strong>Balance:</strong> {{ balance|money }}</p>
+  </div>
+</div>
+
+<h3>Payments</h3>
+<table>
+  <tr><th>Amount</th><th>Method</th><th>Date</th></tr>
+  {% for p in payments %}
+  <tr><td>{{ p.amount|money }}</td><td>{{ p.method }}</td><td>{{ p.paid_at[:16] }}</td></tr>
+  {% else %}
+  <tr><td colspan="3" class="muted">No payments recorded yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

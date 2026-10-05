@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Inpatients{% endblock %}
+{% block content %}
+<h1>Currently admitted</h1>
+<div class="panel">
+  <table>
+    <tr><th>Patient</th><th>Ward</th><th>Bed</th><th>Admitted since</th><th></th></tr>
+    {% for a in admissions %}
+    <tr>
+      <td><a href="{{ url_for('patients.view', patient_id=a.patient_id) }}">{{ a.full_name }}</a> <span class="muted">({{ a.patient_code }})</span></td>
+      <td>{{ a.ward_name }}</td>
+      <td>{{ a.bed_name }}</td>
+      <td>{{ a.admitted_at[:16] }}</td>
+      <td><a class="btn btn-small" href="{{ url_for('visits.detail', visit_id=a.visit_id) }}">Open chart</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">No patients currently admitted.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

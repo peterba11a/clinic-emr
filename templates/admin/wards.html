@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Wards & beds{% endblock %}
+{% block content %}
+<h1>Wards &amp; beds</h1>
+<p class="muted">Each ward has a nightly bed rate. When a patient is discharged, the system automatically bills this rate for every night they stayed.</p>
+
+{% for entry in wards_with_beds %}
+<div class="panel">
+  <form method="post" action="{{ url_for('admin.edit_ward', ward_id=entry.ward.id) }}">
+    <div class="row">
+      <div><label>Ward name</label><input type="text" name="name" value="{{ entry.ward.name }}"></div>
+      <div><label>Nightly rate ({{ clinic.currency or 'UGX' }})</label><input type="number" step="0.01" name="nightly_rate" value="{{ entry.ward.nightly_rate }}"></div>
+      <div style="max-width:120px;"><label>Active</label><input type="checkbox" name="active" value="1" {{ 'checked' if entry.ward.active }}></div>
+      <div style="flex:0; align-self:flex-end;"><button type="submit" class="btn-small">Save</button></div>
+    </div>
+  </form>
+
+  <h3>Beds</h3>
+  <table>
+    <tr><th>Name</th><th>Status</th><th></th></tr>
+    {% for bed in entry.beds %}
+    <tr>
+      <form method="post" action="{{ url_for('admin.edit_bed', bed_id=bed.id) }}">
+        <td><input type="text" name="name" value="{{ bed.name }}"></td>
+        <td>
+          <select name="status">
+            {% for s in ['available','occupied','maintenance'] %}
+            <option value="{{ s }}" {{ 'selected' if bed.status==s }}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><button type="submit" class="btn-small">Save</button></td>
+      </form>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">No beds in this ward yet.</td></tr>
+    {% endfor %}
+  </table>
+  <form method="post" action="{{ url_for('admin.add_bed', ward_id=entry.ward.id) }}" class="row">
+    <div><input type="text" name="name" placeholder="e.g. Bed 4" required></div>
+    <div style="flex:0;"><button type="submit" class="btn-secondary btn-small">Add bed</button></div>
+  </form>
+</div>
+{% endfor %}
+
+<h2>Add a ward</h2>
+<div class="panel">
+  <form method="post">
+    <div class="row">
+      <div><label>Name</label><input type="text" name="name" required></div>
+      <div><label>Nightly rate ({{ clinic.currency or 'UGX' }})</label><input type="number" step="0.01" name="nightly_rate" required></div>
+    </div>
+    <button type="submit">Add ward</button>
+  </form>
+</div>
+{% endblock %}

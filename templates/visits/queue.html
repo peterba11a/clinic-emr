@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Waiting list{% endblock %}
+{% block content %}
+<h1>Waiting list</h1>
+<div class="panel">
+  <table>
+    <tr><th>Checked in</th><th>Patient</th><th>Priority</th><th>Status</th><th></th></tr>
+    {% for v in visits %}
+    <tr>
+      <td>{{ v.visit_date[11:16] }}</td>
+      <td><a href="{{ url_for('patients.view', patient_id=v.patient_id) }}">{{ v.full_name }}</a> <span class="muted">({{ v.patient_code }})</span></td>
+      <td><span class="badge badge-priority-{{ v.priority }}">{{ v.priority }}</span></td>
+      <td><span class="badge badge-{{ v.status }}">{{ v.status.replace('_',' ') }}</span></td>
+      <td>
+        {% if has_role('Reception','Nurse','Clinician') %}<a class="btn btn-small" href="{{ url_for('visits.detail', visit_id=v.id) }}">Attend</a>{% endif %}
+        {% if has_role('Reception') %}<a class="btn btn-small btn-secondary" href="{{ url_for('billing.invoice', visit_id=v.id) }}">Bill</a>{% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">Nobody waiting right now.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

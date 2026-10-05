@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Presenting complaints{% endblock %}
+{% block content %}
+<h1>Presenting complaints list</h1>
+<p class="muted">This list powers the suggestions clinicians see while typing in a visit's Complaints tab. Deactivate an entry instead of deleting it if it's just no longer commonly used.</p>
+<div class="panel">
+  <table>
+    <tr><th>Complaint</th><th>Active</th><th></th></tr>
+    {% for c in complaints %}
+    <tr>
+      <form method="post" action="{{ url_for('admin.edit_complaint_master', complaint_id=c.id) }}">
+      <td><input type="text" name="text" value="{{ c.text }}"></td>
+      <td><input type="checkbox" name="active" value="1" {{ 'checked' if c.active }}></td>
+      <td><button type="submit" class="btn-small">Save</button></td>
+      </form>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">No complaints in the list yet.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h2>Add a complaint</h2>
+<div class="panel">
+  <form method="post">
+    <label>Complaint text</label>
+    <input type="text" name="text" required>
+    <button type="submit">Add</button>
+  </form>
+</div>
+{% endblock %}

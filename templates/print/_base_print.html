@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}Document{% endblock %} — {{ clinic.name }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="print-actions"><button onclick="window.print()">Print / Save as PDF</button></div>
+<div class="print-page">
+  <div class="letterhead">
+    {% if clinic.logo_path %}<img src="{{ url_for('static', filename=clinic.logo_path) }}" alt="">{% endif %}
+    <div>
+      <div class="clinic-name">{{ clinic.name or 'Clinic' }}</div>
+      <div class="clinic-meta">
+        {{ clinic.address or '' }}
+        {% if clinic.phone %} · {{ clinic.phone }}{% endif %}{% if clinic.phone2 %}, {{ clinic.phone2 }}{% endif %}
+        {% if clinic.website %} · {{ clinic.website }}{% endif %}
+      </div>
+      {% if clinic.motto %}<div class="motto">{{ clinic.motto }}</div>{% endif %}
+    </div>
+  </div>
+
+  <div class="doc-title">{% block doc_title %}{% endblock %}</div>
+
+  {% block body %}{% endblock %}
+
+  <div class="print-signature">
+    <div>Printed by: <strong>{{ current_user.full_name if current_user else '—' }}</strong>{% if now %} on {{ now.strftime('%d %b %Y, %H:%M') }}{% endif %}</div>
+    <div class="signature-line">Signature: ________________________________</div>
+  </div>
+
+  {% set socials = [clinic.social_facebook, clinic.social_instagram, clinic.social_whatsapp, clinic.social_twitter, clinic.social_other] | select | list %}
+  {% if socials %}
+  <div class="print-footer">{{ socials|join('  ·  ') }}</div>
+  {% endif %}
+</div>
+</body>
+</html>

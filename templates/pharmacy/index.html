@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Pharmacy{% endblock %}
+{% block content %}
+<h1>Pharmacy inventory</h1>
+<div class="panel">
+  <table>
+    <tr><th>Name</th><th>Type</th><th>Unit</th><th>Price</th><th>Stock</th><th>Expiry</th><th></th></tr>
+    {% for i in items %}
+    <tr>
+      <td>{{ i.name }}</td>
+      <td>{{ i.item_type }}</td>
+      <td>{{ i.unit }}</td>
+      <td>{{ i.unit_price|money }}</td>
+      <td>
+        {{ i.stock_qty }}
+        {% if i.stock_qty <= i.reorder_threshold %}<span class="badge badge-warn">low</span>{% endif %}
+      </td>
+      <td>
+        {{ i.expiry_date or '—' }}
+        {% if i.expiry_date and i.expiry_date <= soon %}<span class="badge badge-warn">expiring</span>{% endif %}
+      </td>
+      <td><a href="{{ url_for('pharmacy.edit', item_id=i.id) }}">Edit</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="muted">No inventory items yet.</td></tr>
+    {% endfor %}
+  </table>
+  <a class="btn" href="{{ url_for('pharmacy.new') }}">Add item</a>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Lab — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<h1>Lab — {{ patient.full_name }}</h1>
+<div class="panel">
+  <form method="post" class="row" style="align-items:flex-end;">
+    <div>
+      <label>Test</label>
+      <select name="billable_id" required>
+        {% for t in test_types %}<option value="{{ t.id }}">{{ t.name }} — {{ t.price|money }}</option>{% endfor %}
+      </select>
+    </div>
+    <div style="flex:0;"><button type="submit">Order test</button></div>
+  </form>
+</div>
+
+<h2>Orders this visit</h2>
+<div class="panel">
+  <table>
+    <tr><th>Test</th><th>Ordered</th><th>Result</th><th></th></tr>
+    {% for o in orders %}
+    <tr>
+      <td>{{ o.test_name }}</td>
+      <td>{{ o.ordered_at[11:16] }}</td>
+      <td>{{ o.result_text or '—' }}</td>
+      <td>
+        {% if not o.result_text %}
+        <form method="post" action="{{ url_for('lab.result', order_id=o.id) }}" class="row" style="align-items:flex-end;margin:0;">
+          <div><input type="text" name="result_text" placeholder="Enter result"></div>
+          <div style="flex:0;"><button type="submit" class="btn-small">Save</button></div>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="muted">No lab orders yet.</td></tr>
+    {% endfor %}
+  </table>
+  <a class="btn btn-secondary" href="{{ url_for('visits.detail', visit_id=visit.id) }}">Back to visit</a>
+</div>
+{% endblock %}

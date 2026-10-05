@@ -1,0 +1,20 @@
+{% extends "print/_base_print.html" %}
+{% block title %}Complete record{% endblock %}
+{% block doc_title %}Complete patient record{% endblock %}
+{% block body %}
+<p><strong>Patient:</strong> {{ patient.full_name }} ({{ patient.patient_code }})</p>
+<p><strong>Age/Sex:</strong> {{ patient.age_years or patient.dob or '—' }} / {{ patient.sex or '—' }} ·
+   <strong>Phone:</strong> {{ patient.phone or '—' }} · <strong>Village:</strong> {{ patient.village or '—' }}</p>
+
+{% for entry in visits %}
+  {% with admission=entry.admission, vitals=entry.vitals, complaints=entry.complaints,
+          history=entry.history, examinations=entry.examinations, diagnoses=entry.diagnoses,
+          notes=entry.notes, lab_orders=entry.lab_orders, radiology_requests=entry.radiology_requests,
+          treatment_orders=entry.treatment_orders, referrals=entry.referrals, visit=entry.visit %}
+  {% include "print/_encounter_detail.html" %}
+  {% endwith %}
+  <hr>
+{% else %}
+<p class="muted">No visits recorded.</p>
+{% endfor %}
+{% endblock %}

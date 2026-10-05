@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Billables{% endblock %}
+{% block content %}
+<h1>Billables / price list</h1>
+<div class="panel">
+  <table>
+    <tr><th>Name</th><th>Category</th><th>Price ({{ clinic.currency or 'UGX' }})</th><th>Active</th><th></th></tr>
+    {% for b in billables %}
+    <tr>
+      <form method="post" action="{{ url_for('admin.edit_billable', billable_id=b.id) }}">
+      <td><input type="text" name="name" value="{{ b.name }}"></td>
+      <td>
+        <select name="category">
+          {% for c in ['consultation','procedure','lab','radiology'] %}
+          <option value="{{ c }}" {{ 'selected' if b.category==c }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td><input type="number" step="0.01" name="price" value="{{ b.price }}" style="width:110px;"></td>
+      <td><input type="checkbox" name="active" value="1" {{ 'checked' if b.active }}></td>
+      <td><button type="submit" class="btn-small">Save</button></td>
+      </form>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h2>Add a billable</h2>
+<div class="panel">
+  <form method="post">
+    <div class="row">
+      <div><label>Name</label><input type="text" name="name" required></div>
+      <div><label>Category</label>
+        <select name="category">
+          <option value="consultation">consultation</option>
+          <option value="procedure">procedure</option>
+          <option value="lab">lab</option>
+          <option value="radiology">radiology</option>
+        </select>
+      </div>
+      <div><label>Price ({{ clinic.currency or 'UGX' }})</label><input type="number" step="0.01" name="price" required></div>
+    </div>
+    <button type="submit">Add</button>
+  </form>
+</div>
+
+<h2>Printing</h2>
+<div class="panel">
+  <p class="muted">
+    When this is set above 0, printing a prescription, referral, visit
+    summary, complete patient record, discharge summary, or receipt
+    automatically adds a charge to that patient's bill — every print
+    counts as 1 page, and printing the same document again bills again.
+    Leave it at 0 to not charge for printing at all.
+  </p>
+  <form method="post" action="{{ url_for('admin.printing_price') }}">
+    <div class="row">
+      <div>
+        <label>Price per page ({{ clinic.currency or 'UGX' }})</label>
+        <input type="number" step="0.01" min="0" name="price_per_page" value="{{ print_price_per_page }}" style="width:140px;">
+      </div>
+    </div>
+    <button type="submit">Save</button>
+  </form>
+</div>
+{% endblock %}
