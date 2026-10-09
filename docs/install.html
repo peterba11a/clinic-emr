@@ -1,125 +1,52 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Install — Clinic EMR</title>
-<meta name="description" content="How to install Clinic EMR on the clinic's computer, connect other devices, and set up backups.">
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install — Clinic EMR</title>
+  <meta name="description" content="How to install Clinic EMR on the clinic's computer, connect other devices, and set up backups.">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="site">
-  <div class="wrap">
-    <a class="brand" href="index.html"><span class="brand-mark">+</span> Clinic EMR</a>
-    <nav class="site-nav">
-      <a href="index.html">Home</a>
-      <a href="install.html" class="current">Install</a>
-      <a href="user-guide.html">User guide</a>
-      <a href="https://github.com/peterba11a/clinic-emr/releases/download/v1.0/ClinicEMR-Setup.exe">Download</a>
-    </nav>
-  </div>
-</header>
-
-<main>
-  <div class="wrap">
-    <div class="eyebrow">Install guide</div>
-    <h1>Getting Clinic EMR running at the clinic</h1>
-    <p class="lede">
-      This covers the normal path — installing it on the one computer the
-      clinic will use as its server — plus connecting other devices and
-      setting up backups. It takes about 15 minutes the first time.
-    </p>
-
-    <h2>1. Install on the server computer(This computer should stay on at all times the system is in use)</h2>
-    <p>
-      This should be whichever computer stays on at the clinic (a desktop
-      is ideal, but any Windows 10/11 laptop works). Run
-      <code>ClinicEMR-Setup.exe</code> and click through the installer.
-    </p>
-    <p>
-      Once installed, the app starts automatically every time the computer
-      boots, and restarts itself if it ever crashes — nobody at the clinic
-      needs to open anything by hand day to day. It opens a browser to
-      itself automatically on this computer.
-    </p>
-
-    <div class="callout">
-      <p>
-        <strong>Leave "Make this computer's network address permanent"
-        ticked</strong> during installation (it's on by default). This is
-        what lets every other device in the clinic reach this computer at
-        the same address forever, even after it restarts — see step 2.
-      </p>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">+</span> Clinic EMR
+      </a>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="install.html" class="current">Install</a>
+        <a href="user-guide.html">User guide</a>
+        <a href="https://github.com/peterba11a/clinic-emr/releases/download/v1.0/ClinicEMR-Setup.exe">Download</a>
+      </nav>
     </div>
-
-    <div class="callout warn">
-      <p>
-        <strong>First login:</strong> username <code>admin</code>, password
-        <code>admin123</code>. Change this immediately — Admin &rarr; Users
-        &rarr; edit the admin account — before entering any real patient
-        data. Every user, Admin included, is asked to accept a short Terms
-        of Use on first login, which explains who's responsible for the
-        clinic's data.
+  </header>
+  <main>
+    <div class="wrap">
+      <div class="eyebrow">Install guide</div>
+      <h1>Getting Clinic EMR running at the clinic</h1>
+      <p class="lede">
+        This covers the normal path — installing it on the one computer the clinic will use as its server — plus connecting other devices and setting up backups. It takes about 15 minutes the first time.
       </p>
+
+      <h2>1. Install on the server computer <small style="font-weight: normal;">(This computer should stay on at all times the system is in use)</small></h2>
+      <p>
+        This should be whichever computer stays on at the clinic (a desktop is ideal, but any Windows 10/11 laptop works). Run <code>ClinicEMR-Setup.exe</code> and click through the installer.
+      </p>
+      <p>
+        Once installed, the app starts automatically every time the computer boots, and restarts itself if it ever crashes — nobody at the clinic needs to open anything by hand day to day. It opens a browser to itself automatically on this computer.
+      </p>
+      <div class="callout">
+        <p>
+          <strong>Leave "Make this computer's network address permanent" ticked</strong> during installation (it's on by default). This is what lets every other device in the clinic reach this computer at the same address forever, even after it restarts — see step 2.
+        </p>
+      </div>
+      <div class="callout warn">
+        <p>
+          <strong>First login:</strong> username <code>admin</code>, password <code>admin123</code>. Change this immediately — Admin &rarr; Users &rarr; edit the admin account — before entering any real patient data. Every user, Admin included, is asked to accept a short Terms of Use on first login, which explains who's responsible for the clinic's data.
+        </p>
+      </div>
     </div>
-
-    <h2>2. Connect other devices</h2>
-    <p>
-      A consultation-room laptop, a reception desktop, a nurse's tablet —
-      none of them need anything installed but they need to be turned on for other users to access the system. They just open a browser and
-      go to the server computer's address, shown on Admin &rarr; Connect a
-      device — something like:
-    </p>
-    <pre><code>http://192.168.1.50:8080</code></pre>
-    <p>
-      That's a fixed, numeric address — pinned permanently during
-      installation (step 1) — so it works on every device with nothing
-      extra to install, and it's what to hand out to staff by default. The
-      same page also shows a friendlier name,
-      <code>http://clinicserver.local:8080</code>, which works out of the
-      box on macOS, iOS, and modern Linux, but generally
-      <strong>not</strong> on Windows unless Apple's Bonjour is separately
-      installed there — so treat that name as a bonus, not something to
-      rely on for a Windows device.
-    </p>
-    <p>
-      If the numeric address was ever left unpinned, or the server computer
-      moves to a different network later, Admin &rarr; Connect a device has
-      a one-click way to redo it — no reinstalling, no router access
-      needed.
-    </p>
-
-    <h2>3. Set up backups</h2>
-    <p>
-      Every night, Clinic EMR makes an encrypted snapshot of the clinic's
-      data and writes it to a local folder. Point that folder at a
-      <strong>Google Drive for Desktop</strong> synced folder (Admin &rarr;
-      Backup status) and Google's own sync client uploads it whenever the
-      internet is available — Clinic EMR itself never talks to Google or
-      any other cloud service directly.
-    </p>
-    <ol>
-      <li>Install Google Drive for Desktop on the server computer.</li>
-      <li>Sign in there with a Google account <strong>the clinic owns</strong> (not a personal one), with 2-factor authentication turned on.</li>
-      <li>In Clinic EMR, go to Admin &rarr; Backup status and paste the path of the folder Google Drive syncs.</li>
-    </ol>
-    <p>
-      Until this is set up, a dismissible reminder banner shows on every
-      page. Restoring onto a new machine (disaster recovery) is a single
-      command once the backup folder has synced to it — see the project's
-      README for the exact steps.
-    </p>
-
-  </div>
-</main>
-
-<footer class="site">
-  <div class="wrap">
-    Clinic EMR is free, open-source software provided as-is — see the
-    project's Terms of Use (shown on first login) for how responsibility
-    for clinic data is allocated. It is a vibe code project by Dr. Isagara Peter, MBChB (KABSOM, 2025) &middot;
-    <a href="https://github.com/peterba11a/clinic-emr/releases/download/v1.0/ClinicEMR-Setup.exe">Source &amp; downloads on GitHub</a>
-  </div>
-</footer>
+  </main>
 </body>
 </html>
