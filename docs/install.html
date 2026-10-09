@@ -15,7 +15,7 @@
       <a href="index.html">Home</a>
       <a href="install.html" class="current">Install</a>
       <a href="user-guide.html">User guide</a>
-      <a href="https://github.com/">Download</a>
+      <a href="https://github.com/peterba11a/clinic-emr/releases/download/v1.0/ClinicEMR-Setup.exe</a>
     </nav>
   </div>
 </header>
@@ -30,7 +30,7 @@
       setting up backups. It takes about 15 minutes the first time.
     </p>
 
-    <h2>1. Install on the server computer</h2>
+    <h2>1. Install on the server computer(This computer should stay on at all times the system is in use)</h2>
     <p>
       This should be whichever computer stays on at the clinic (a desktop
       is ideal, but any Windows 10/11 laptop works). Run
@@ -66,7 +66,7 @@
     <h2>2. Connect other devices</h2>
     <p>
       A consultation-room laptop, a reception desktop, a nurse's tablet —
-      none of them need anything installed. They just open a browser and
+      none of them need anything installed but they need to be turned on for other users to access the system. They just open a browser and
       go to the server computer's address, shown on Admin &rarr; Connect a
       device — something like:
     </p>
@@ -77,7 +77,7 @@
       extra to install, and it's what to hand out to staff by default. The
       same page also shows a friendlier name,
       <code>http://clinicserver.local:8080</code>, which works out of the
-      box on macOS, iOS, Android, and modern Linux, but generally
+      box on macOS, iOS, and modern Linux, but generally
       <strong>not</strong> on Windows unless Apple's Bonjour is separately
       installed there — so treat that name as a bonus, not something to
       rely on for a Windows device.
@@ -110,24 +110,14 @@
       README for the exact steps.
     </p>
 
-    <h2>Running it without the installer (development/testing)</h2>
-    <p>Only needed if you're working on the code itself, not for clinic use:</p>
-    <pre><code>pip install -r requirements.txt
-python app.py</code></pre>
-
-    <div class="callout">
-      <p>
-        Full technical details — project layout, building the installer
-        yourself, the backup/restore format — are in the README in the
-        source repository.
-      </p>
-    </div>
   </div>
 </main>
 
 <footer class="site">
   <div class="wrap">
-    Clinic EMR is free, open-source software provided as-is. &middot;
+    Clinic EMR is free, open-source software provided as-is — see the
+    project's Terms of Use (shown on first login) for how responsibility
+    for clinic data is allocated. It is a vibe code project by Dr. Isagara Peter, MBChB (KABSOM, 2025) &middot;
     <a href="https://github.com/peterba11a/clinic-emr/releases/download/v1.0/ClinicEMR-Setup.exe">Source &amp; downloads on GitHub</a>
   </div>
 </footer>
